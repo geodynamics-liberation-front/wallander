@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="css/index.css">
+	<script src="js/ajax.js"></script>
+	<script src="js/display/display.js"></script>
+<script>
+var projector=null;
+var toolbox=null;
+var display=null;
+var movie=null;
+var model=null;
+
+function init()
+{
+	console.log("init");
+	depiction_mgr=new DepictionManager(document.getElementById("depictions"), document.getElementById("depiction_edit"));
+	display=new Display(document.getElementById("display"),depiction_mgr);
+	depiction_mgr.display=display;
+
+	display.addDepiction(new Background());
+	toolbox=new ToolBox(display);
+	projector=new Projector(display);
+	// load the models
+	jsonCall('/models',init_models);
+
+	movie=new Movie("",[[0,0]]);
+	projector.addMovie(movie);
+	setTimeout( function(e) {display.resize();}, 200);
+}
+
+function init_models(models)
+{
+	models.sort();
+	var s=document.getElementById('models');
+	s.addEventListener('change',select_model);
+	for( var i=0; i<models.length; i++)
+	{
+		var o=document.createElement('option');
+		o.innerHTML=(models[i]);
+		s.appendChild(o);
+	}
+	select_model(models[0])
+}
+
+function select_model(model)
+{
+	console.log("select_model")
+	var model=document.getElementById('models').value
+	jsonCall('/models'+model+'/',function(m) { set_model(m); });
+}
+
+function set_model(m)
+{
+	console.log("set_model")
+	model=m;
+	set_fields(m)
+	jsonCall('/models'+model.name+'/timesteps',function(timesteps) { set_movie(timesteps); });
+}
+
+function set_fields(model)
+{
+	var e=document.getElementById('movie_fields')
+	e.innerHTML='';
+	var fields=model.fields.sort()
+	for( var i=0; i<fields.length; i++)
+	{
+		field=fields[i];
+		var r=document.createElement('tr');
+
+		// Check box
+		var cb=document.createElement('input');
+		cb.type='checkbox';
+		cb.name=field;
+		cb.model=model.name;
+		cb.addEventListener('change',toggle_field);
+		var d=document.createElement('td');	
+		d.appendChild(cb);
+		r.appendChild(d);
+
+		// Field name
+		var d=document.createElement('td');	
+		d.appendChild(document.createTextNode(' '+field+' '));
+		r.appendChild(d);
+
+		// Min value
+		var d=document.createElement('td');	
+		var min=document.createElement('input');
+		min.name=field+'_min';
+		min.type='text';
+		d.appendChild(min)
+		r.appendChild(d);
+
+		// Dash
+		var d=document.createElement('td');	
+		d.appendChild(document.createTextNode('-'));
+		r.appendChild(d);
+
+		// Max value
+		var d=document.createElement('td');	
+		var max=document.createElement('input');
+		max.name=field+'_max';
+		max.type='text';
+		d.appendChild(max)
+		r.appendChild(d);
+
+		var d=document.createElement('td');	
+		var status=document.createElement('span');
+		status.id=field+'_status';
+		d.appendChild(status);
+		r.appendChild(d);
+
+		e.appendChild(r);
+	}
+}
+
+function set_movie(timesteps)
+{
+	model.timesteps=timesteps;
+	document.getElementById('movie_par').innerHTML='<a href="/models/'+model.name+'/'+model.par+'" target="par">par</a>';
+	document.getElementById('movie_frames').innerHTML=timesteps.length;
+	document.getElementById('movie_time').innerHTML=sprintf('%0.1f<spam class="label">Ma</span>',timesteps[timesteps.length-1][1]/(1e6*365.25*24*3600));
+	movie.reset(model.name,timesteps);
+	display.redraw();
+}
+
+function toggle_field(e)
+{
+	var input=e.target;
+	var name=input.name;
+	if( input.checked )
+	{
+		var model=input.model;
+		movie.addLayer(name,'/models'+model+'/'+name+'/');
+	}
+	else
+	{
+		movie.removeLayer(name);
+	}
+	display.redraw();
+}
+
+function add_layer(name)
+{
+	movie.addLayer(name,'/models'+model+'/eta/','vmin=1e19&vmax=1e24&under_color=2DD6D6&under_alpha=0.2');
+}
+//                 colormap=plt.get_cmap('jet'),
+//                 over_color=None, over_alpha=1.0,
+//                 under_color=None, under_alpha=1.0,
+//                 bad_color=None, bad_alpha=1.0,
+//                 gamma=1.0):
+
+
+function toggle_toolset(e)
+{
+	e.stopPropagation();
+	e.preventDefault();
+	var anchor=e.target;
+	var ts=document.getElementById("toolset");
+	if( has_class(ts,"expanded") ) 
+	{
+		remove_class(ts,"expanded");
+		anchor.innerHTML="&#187;"
+	}
+	else
+	{
+		add_class(ts,"expanded");
+		anchor.innerHTML="&#171;"
+	}
+	return false;
+}
+
+function show_dialog()
+{
+	var dialog=document.getElementById('dialog');
+	dialog.style.display='block';
+	toolbox.close()
+}
+
+function hide_dialog()
+{
+	var dialog=document.getElementById('dialog');
+	dialog.style.display='none';
+}
+
+
+</script>
+</head>
+<body>
+<div id="display"></div>
+<div id="status">
+<span id="fps_status"></span>
+<span id="frame_status"></span>
+<span id="time_status"></span>
+<span id="timestep_status"></span>
+<span id="xy_status"></span>
+</div>
+<div>
+<div id="depictions"></div>
+<div id="depiction_edit">
+
+<div id="movie_editor">
+<form name='movie_form'>
+<div><span class="label">Model </span><select id="models" name="models"></select></div>
+<div>
+<span class="label">Frames </span><span class="value" id="movie_frames"></span> / <span class="value" id="movie_time"></span>
+<span id="movie_par"></span>
+</div>
+<hr>
+<span class="label">Fields:</span>
+<table id="movie_fields"></table>
+</form>
+</div>
+
+<div id="line_editor">Line Editor</div>
+<div id="point_editor">Point Editor</div>
+</div>
+</div>
+
+<div id="dialog">
+	<iframe src="open_dataset.html"></iframe>
+</div>
+
+</body>
+<script>
+init();
+</script>
+</html>

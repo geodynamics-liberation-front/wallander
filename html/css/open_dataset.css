@@ -1,0 +1,72 @@
+/* Fonts */
+@import url("OpenSansCondensed.css");
+@import url("base.css");
+
+body {
+background-color: rgb(255,255,255);
+padding: 0;
+margin: 0;
+}
+
+.breadcrumb_bar {
+padding: 4px;
+/* border: 1px solid rgba(100,100,100,1); */
+font-family: 'Open Sans Condensed', sans-serif;
+font-size: 16pt;
+font-weight: 300;
+}
+
+#breadcrumb a {
+margin: 4px;
+padding: 4px;
+margin: 2px;
+text-decoration: none;
+}
+
+#favorite{
+height: 1em;
+}
+
+#navigation {
+width:100%;
+}
+
+
+#contents {
+/* border: 1px solid rgb(100,0,0); */
+margin: 10px;
+/* background-color: rgb(240,240,240); */
+}
+
+a.icon {
+display: block;
+float: left;
+/*width: 50;*/
+padding: 2px;
+text-align: center;
+margin: 5px;
+border: 1px solid rgba(255,255,255,0);
+text-decoration: none;
+white-space: pre-wrap;
+}
+
+a.icon:hover {
+background-color: rgb(240,240,240);
+border: 1px solid rgba(0,0,0,1);
+}
+
+a.icon img {
+width: 50;
+height: 50;
+}
+
+.title_bar {
+text-align: right;
+padding: 5px;
+}
+
+.title_bar img {
+width: 20px;
+height: 20px;
+}
+

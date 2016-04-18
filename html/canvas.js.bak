@@ -1,0 +1,154 @@
+var _moves=[];
+var x=0;
+var y=0;
+var w=0;
+var h=0;
+var _container;
+var _canvas;
+var _paper=null;
+var _events_init=false;
+//var _canvas.width;
+//var _canvas.height;
+var zoom_level=1.0;
+var _x0=0;
+var _y0=0;
+var _mousedrag=false;
+var _mousex=0;
+var _mousey=0;
+var _minzoom=0.1
+
+
+function _init_canvas(canvas_id)
+{
+	// Get the canvas
+	_canvas=document.getElementById(canvas_id);
+	console.debug("Got canvas:");
+	console.debug(_canvas);
+	// Get the container
+	_container=_canvas.parentElement;
+	// Get the context
+	_paper=_canvas.getContext('2d');
+	_x0=0;
+	_y0=0;
+	if(!_events_init) { _init_events(); }
+	_init_state();
+	// Clear the state
+	_redraw();
+}
+
+function _init_events()
+{
+	// Register some events
+	_container.addEventListener('mouseup',_container_resize); // We should also make a mutation listener even though Chrome dones't work with it
+	_canvas.addEventListener('mousedown', _canvas_mousedown);
+	_canvas.addEventListener('mouseup', _canvas_mouseup);
+	_canvas.addEventListener('mousemove', _canvas_mousemove);
+	_canvas.addEventListener('mousewheel', _canvas_mousewheel);
+	_events_init=true;
+}
+
+
+function _init_state()
+{
+	_moves=[];	
+	x=0;
+	y=0;
+	theta=90;
+	pen=true;
+	//_moves.push( "_paper.fillStyle=background;" );
+	//_moves.push( "_paper.fillRect(0,0,w,h);" );
+	_moves.push( "_paper.drawImage(img,0,0,img.width,img.height);" )
+	//_moves.push( "_paper.drawImage(img2,0,0,img2.width,img2.height);" )
+	//_moves.push( "_paper.fillStyle='#ff0000';" );
+	//_moves.push( "_paper.fillRect(0,0,10,10);" );
+}
+
+
+function _container_resize()
+{
+	var s=window.getComputedStyle(_container);
+	w=_container.clientWidth-parseInt(s['padding-left'])-parseInt(s['padding-right']);
+	h=_container.clientHeight-parseInt(s['padding-top'])-parseInt(s['padding-bottom']);;
+	_canvas.width=w;
+	_canvas.height=h;
+	_redraw();
+}
+
+function _canvas_xy(e)
+{
+	var rect = _canvas.getBoundingClientRect();
+// console.jjjj
+//	console.debug(rect.left);
+//	console.debug(e.clientX);
+//	console.debug(rect.top);
+//	console.debug(e.clientY);
+//	console.debug(zoom_level);
+//	var x=_x0+(e.clientX-rect.left)/zoom_level;
+//	var y=_y0+(e.clientY-rect.top)/zoom_level;
+	var x=(e.clientX-rect.left)/zoom_level-_x0;
+	var y=(e.clientY-rect.top)/zoom_level-_y0;
+	return {'x':x,'y':y};
+}
+
+function _canvas_mousedown(e)
+{
+	_mousedrag=true;
+    _mousex=e.x;
+	_mousey=e.y;
+	_canvas.className="dragging";
+}
+
+function _canvas_mouseup(e)
+{
+	_mousedrag=false;
+    _mousex=0;
+	_mousey=0;
+	_canvas.className="";
+	console.debug(_canvas_xy(e));
+}
+
+function _canvas_mousemove(e)
+{
+	if(!_mousedrag) {return;}
+	_x0+=(e.x-_mousex)/zoom_level;
+	_y0+=(e.y-_mousey)/zoom_level;
+    _mousex=e.x;
+	_mousey=e.y;
+	_redraw();
+}
+
+function _canvas_mousewheel(e)
+{
+	var p=_canvas_xy(e);
+	e.stopPropagation();
+	e.preventDefault();
+	zoom(zoom_level*Math.pow(2,(e.wheelDelta/(2*Math.abs(e.wheelDelta)))),p.x,p.y);
+}
+
+function zoom(n,x,y)
+{ 
+	if( x!=null )
+	{
+		_x0=(x+_x0)*zoom_level/n-x;
+		_y0=(y+_y0)*zoom_level/n-y;
+	}
+	zoom_level=n;
+	_redraw();
+}
+
+function _clear()
+{
+	_canvas.width=_canvas.width;
+}
+
+function _redraw()
+{
+	_canvas.width=_canvas.width;
+	_paper.imageSmoothingEnabled=false;
+	_paper.scale(zoom_level,zoom_level); 
+	_paper.translate(_x0,_y0);
+	for( var i in _moves )
+	{
+		eval(_moves[i]);
+	}
+}

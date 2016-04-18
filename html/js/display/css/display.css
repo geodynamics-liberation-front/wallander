@@ -1,0 +1,19 @@
+.glf_container {
+overflow: hidden;
+width: 100px;
+height: 100px;
+resize: both;
+border: 1px solid black;
+padding: 10px;
+margin: 0 auto;
+}
+
+
+.glf_canvas { 
+	border: 1px solid #cccccc; 
+} 
+
+.glf_canvas:focus {
+	outline: none;
+}
+

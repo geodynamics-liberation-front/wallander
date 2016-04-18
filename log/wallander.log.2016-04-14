@@ -1,0 +1,240 @@
+2016-04-14 14:26:13,903 - config (11122) - WARNING - Couldn't find logger 'LOG' in '<module '__main__' (built-in)>'
+2016-04-14 14:26:13,907 - wallander.application (11122) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017/
+2016-04-14 14:26:13,907 - wallander.application (11122) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017/
+2016-04-14 14:26:13,907 - wallander.application (11122) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:26:13,907 - wallander.application (11122) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:26:13,908 - wallander.application (11122) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec01e9e4d0>
+2016-04-14 14:26:13,908 - wallander.application (11122) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec01e9e4d0>
+2016-04-14 14:26:13,908 - wallander.data_providers (11122) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017']
+2016-04-14 14:26:13,908 - wallander.data_providers (11122) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017']
+2016-04-14 14:26:13,908 - stagyy (11122) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03/psd_00017
+2016-04-14 14:26:13,908 - stagyy (11122) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03
+2016-04-14 14:26:13,909 - wallander.cache (11122) - DEBUG - CacheInvalidationThread started
+2016-04-14 14:26:13,909 - wallander.cache (11122) - DEBUG - CacheInvalidationThread started
+2016-04-14 14:26:13,910 - wallander.cache (11122) - DEBUG - Checking cache items...
+2016-04-14 14:26:13,910 - wallander.cache (11122) - DEBUG - Checking cache items...
+2016-04-14 14:29:22,069 - config (11197) - WARNING - Couldn't find logger 'LOG' in '<module '__main__' (built-in)>'
+2016-04-14 14:29:22,074 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 14:29:22,074 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 14:29:22,074 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:29:22,074 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:29:22,074 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:29:22,074 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:29:22,075 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 14:29:22,075 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 14:29:22,075 - stagyy (11197) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03
+2016-04-14 14:29:22,076 - wallander.cache (11197) - DEBUG - CacheInvalidationThread started
+2016-04-14 14:29:22,076 - wallander.cache (11197) - DEBUG - CacheInvalidationThread started
+2016-04-14 14:29:22,077 - wallander.cache (11197) - DEBUG - Checking cache items...
+2016-04-14 14:29:22,077 - wallander.cache (11197) - DEBUG - Checking cache items...
+2016-04-14 14:29:29,961 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017
+2016-04-14 14:29:29,961 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017
+2016-04-14 14:29:29,961 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:29:29,961 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:29:29,961 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:29:29,961 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:29:29,961 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017']
+2016-04-14 14:29:29,961 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017']
+2016-04-14 14:29:29,961 - stagyy (11197) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03/psd_00017
+2016-04-14 14:29:29,961 - stagyy (11197) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03
+2016-04-14 14:29:29,962 - stagyy (11197) - DEBUG - Requested folder with extra path info
+2016-04-14 14:34:04,112 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017
+2016-04-14 14:34:04,112 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017
+2016-04-14 14:34:04,113 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:34:04,113 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:34:04,113 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:34:04,113 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:34:04,113 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017']
+2016-04-14 14:34:04,113 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017']
+2016-04-14 14:34:04,113 - stagyy (11197) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03/psd_00017
+2016-04-14 14:34:22,146 - wallander.cache (11197) - DEBUG - Checking cache items...
+2016-04-14 14:34:22,146 - wallander.cache (11197) - DEBUG - Checking cache items...
+2016-04-14 14:34:23,063 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017/init.h5
+2016-04-14 14:34:23,063 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017/init.h5
+2016-04-14 14:34:23,063 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:34:23,063 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:34:23,063 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:34:23,063 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:34:23,063 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017', 'init.h5']
+2016-04-14 14:34:23,063 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017', 'init.h5']
+2016-04-14 14:34:23,064 - stagyy (11197) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03/psd_00017/init.h5
+2016-04-14 14:34:23,064 - stagyy (11197) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03/psd_00017
+2016-04-14 14:34:23,064 - wallander.application (11197) - ERROR - Exception processing request
+Traceback (most recent call last):
+  File "/var/wallander/python/wallander/application.py", line 45, in __call__
+    r=dp(environ,start_response,path)
+  File "/var/wallander/python/wallander/data_providers.py", line 48, in __call__
+    result=self.call(environ,start_response,path[:])
+  File "/var/wallander/data_providers/stagyy/__init__.py", line 43, in call
+    response=response[field]
+TypeError: 'H5DataSourceFolder' object has no attribute '__getitem__'
+2016-04-14 14:34:23,064 - wallander.application (11197) - ERROR - Exception processing request
+Traceback (most recent call last):
+  File "/var/wallander/python/wallander/application.py", line 45, in __call__
+    r=dp(environ,start_response,path)
+  File "/var/wallander/python/wallander/data_providers.py", line 48, in __call__
+    result=self.call(environ,start_response,path[:])
+  File "/var/wallander/data_providers/stagyy/__init__.py", line 43, in call
+    response=response[field]
+TypeError: 'H5DataSourceFolder' object has no attribute '__getitem__'
+2016-04-14 14:42:35,921 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017/init.h5
+2016-04-14 14:42:35,921 - wallander.application (11197) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017/init.h5
+2016-04-14 14:42:35,922 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:42:35,922 - wallander.application (11197) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 14:42:35,922 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:42:35,922 - wallander.application (11197) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7fec08069450>
+2016-04-14 14:42:35,922 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017', 'init.h5']
+2016-04-14 14:42:35,922 - wallander.data_providers (11197) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017', 'init.h5']
+2016-04-14 14:42:35,923 - stagyy (11197) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03/psd_00017/init.h5
+2016-04-14 14:42:35,924 - stagyy (11197) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03/psd_00017
+2016-04-14 14:42:35,924 - wallander.application (11197) - ERROR - Exception processing request
+Traceback (most recent call last):
+  File "/var/wallander/python/wallander/application.py", line 45, in __call__
+    r=dp(environ,start_response,path)
+  File "/var/wallander/python/wallander/data_providers.py", line 48, in __call__
+    result=self.call(environ,start_response,path[:])
+  File "/var/wallander/data_providers/stagyy/__init__.py", line 43, in call
+    response=response[field]
+TypeError: 'H5DataSourceFolder' object has no attribute '__getitem__'
+2016-04-14 14:42:35,924 - wallander.application (11197) - ERROR - Exception processing request
+Traceback (most recent call last):
+  File "/var/wallander/python/wallander/application.py", line 45, in __call__
+    r=dp(environ,start_response,path)
+  File "/var/wallander/python/wallander/data_providers.py", line 48, in __call__
+    result=self.call(environ,start_response,path[:])
+  File "/var/wallander/data_providers/stagyy/__init__.py", line 43, in call
+    response=response[field]
+TypeError: 'H5DataSourceFolder' object has no attribute '__getitem__'
+2016-04-14 19:40:28,233 - config (1319) - WARNING - Couldn't find logger 'LOG' in '<module '__main__' (built-in)>'
+2016-04-14 19:40:28,238 - wallander.application (1319) - DEBUG - REQUEST_URI: /wallander/
+2016-04-14 19:40:28,238 - wallander.application (1319) - DEBUG - REQUEST_URI: /wallander/
+2016-04-14 19:40:28,239 - wallander.application (1319) - DEBUG - Data provider name: ''
+2016-04-14 19:40:28,239 - wallander.application (1319) - DEBUG - Data provider name: ''
+2016-04-14 19:40:28,239 - wallander.application (1319) - DEBUG - Data provider: <function dp_provider_response at 0x7f3800f31848>
+2016-04-14 19:40:28,239 - wallander.application (1319) - DEBUG - Data provider: <function dp_provider_response at 0x7f3800f31848>
+2016-04-14 19:45:28,285 - wallander.cache (1319) - DEBUG - Checking cache items...
+2016-04-14 19:45:28,285 - wallander.cache (1319) - DEBUG - Checking cache items...
+2016-04-14 19:46:37,516 - config (5831) - WARNING - Couldn't find logger 'LOG' in '<module '__main__' (built-in)>'
+2016-04-14 19:46:37,521 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/
+2016-04-14 19:46:37,521 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/
+2016-04-14 19:46:37,521 - wallander.application (5831) - DEBUG - Data provider name: ''
+2016-04-14 19:46:37,521 - wallander.application (5831) - DEBUG - Data provider name: ''
+2016-04-14 19:46:37,521 - wallander.application (5831) - DEBUG - Data provider: <function dp_provider_response at 0x7f380117f848>
+2016-04-14 19:46:37,521 - wallander.application (5831) - DEBUG - Data provider: <function dp_provider_response at 0x7f380117f848>
+2016-04-14 19:46:49,411 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/
+2016-04-14 19:46:49,411 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/
+2016-04-14 19:46:49,411 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 19:46:49,411 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 19:46:49,411 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 19:46:49,411 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 19:46:49,411 - wallander.data_providers (5831) - DEBUG - Checking path: []
+2016-04-14 19:46:49,411 - wallander.data_providers (5831) - DEBUG - Checking path: []
+2016-04-14 19:46:49,412 - stagyy (5831) - DEBUG - Checking path: /var/wallander/data/stagyy
+2016-04-14 19:46:49,413 - stagyy (5831) - DEBUG - Root
+2016-04-14 19:46:52,177 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd
+2016-04-14 19:46:52,177 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd
+2016-04-14 19:46:52,178 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 19:46:52,178 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 19:46:52,178 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 19:46:52,178 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 19:46:52,178 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd']
+2016-04-14 19:46:52,178 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd']
+2016-04-14 19:46:52,178 - stagyy (5831) - DEBUG - Checking path: /var/wallander/data/stagyy/psd
+2016-04-14 19:47:02,415 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 19:47:02,415 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 19:47:02,415 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 19:47:02,415 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 19:47:02,416 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 19:47:02,416 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 19:47:02,416 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 19:47:02,416 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 19:47:02,416 - stagyy (5831) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03
+2016-04-14 19:51:37,544 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 19:51:37,544 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 19:56:37,579 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 19:56:37,579 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:01:37,675 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:01:37,675 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:06:37,732 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:06:37,732 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:07:41,323 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/
+2016-04-14 20:07:41,323 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/
+2016-04-14 20:07:41,324 - wallander.application (5831) - DEBUG - Data provider name: ''
+2016-04-14 20:07:41,324 - wallander.application (5831) - DEBUG - Data provider name: ''
+2016-04-14 20:07:41,324 - wallander.application (5831) - DEBUG - Data provider: <function dp_provider_response at 0x7f380117f848>
+2016-04-14 20:07:41,324 - wallander.application (5831) - DEBUG - Data provider: <function dp_provider_response at 0x7f380117f848>
+2016-04-14 20:07:56,789 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/psd/
+2016-04-14 20:07:56,789 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/psd/
+2016-04-14 20:07:56,789 - wallander.application (5831) - DEBUG - Data provider name: 'psd'
+2016-04-14 20:07:56,789 - wallander.application (5831) - DEBUG - Data provider name: 'psd'
+2016-04-14 20:07:56,789 - wallander.application (5831) - DEBUG - Data provider: None
+2016-04-14 20:07:56,789 - wallander.application (5831) - DEBUG - Data provider: None
+2016-04-14 20:07:56,790 - wallander.application (5831) - DEBUG - No data provider for psd
+2016-04-14 20:07:56,790 - wallander.application (5831) - DEBUG - No data provider for psd
+2016-04-14 20:07:59,880 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/
+2016-04-14 20:07:59,880 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/
+2016-04-14 20:07:59,881 - wallander.application (5831) - DEBUG - Data provider name: ''
+2016-04-14 20:07:59,881 - wallander.application (5831) - DEBUG - Data provider name: ''
+2016-04-14 20:07:59,881 - wallander.application (5831) - DEBUG - Data provider: <function dp_provider_response at 0x7f380117f848>
+2016-04-14 20:07:59,881 - wallander.application (5831) - DEBUG - Data provider: <function dp_provider_response at 0x7f380117f848>
+2016-04-14 20:08:03,546 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd
+2016-04-14 20:08:03,546 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd
+2016-04-14 20:08:03,546 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:08:03,546 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:08:03,546 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:08:03,546 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:08:03,546 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd']
+2016-04-14 20:08:03,546 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd']
+2016-04-14 20:08:03,547 - stagyy (5831) - DEBUG - Checking path: /var/wallander/data/stagyy/psd
+2016-04-14 20:08:10,230 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 20:08:10,230 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 20:08:10,230 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:08:10,230 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:08:10,230 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:08:10,230 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:08:10,231 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 20:08:10,231 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 20:08:10,231 - stagyy (5831) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03
+2016-04-14 20:11:37,811 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:11:37,811 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:16:37,912 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:16:37,912 - wallander.cache (5831) - DEBUG - Checking cache items...
+2016-04-14 20:19:36,511 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 20:19:36,511 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 20:19:36,511 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:19:36,511 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:19:36,511 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:19:36,511 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:19:36,513 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 20:19:36,513 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 20:19:36,513 - stagyy (5831) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03
+2016-04-14 20:19:39,350 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 20:19:39,350 - wallander.application (5831) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 20:19:39,350 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:19:39,350 - wallander.application (5831) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:19:39,351 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:19:39,351 - wallander.application (5831) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:19:39,351 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 20:19:39,351 - wallander.data_providers (5831) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 20:19:39,351 - stagyy (5831) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03
+2016-04-14 20:21:10,198 - config (10224) - WARNING - Couldn't find logger 'LOG' in '<module '__main__' (built-in)>'
+2016-04-14 20:21:10,203 - wallander.application (10224) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 20:21:10,203 - wallander.application (10224) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/
+2016-04-14 20:21:10,203 - wallander.application (10224) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:21:10,203 - wallander.application (10224) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:21:10,203 - wallander.application (10224) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:21:10,203 - wallander.application (10224) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:21:10,203 - wallander.data_providers (10224) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 20:21:10,203 - wallander.data_providers (10224) - DEBUG - Checking path: ['psd', 'psd03']
+2016-04-14 20:21:10,204 - stagyy (10224) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03
+2016-04-14 20:21:21,825 - wallander.application (10224) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017
+2016-04-14 20:21:21,825 - wallander.application (10224) - DEBUG - REQUEST_URI: /wallander/stagyy/psd/psd03/psd_00017
+2016-04-14 20:21:21,826 - wallander.application (10224) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:21:21,826 - wallander.application (10224) - DEBUG - Data provider name: 'stagyy'
+2016-04-14 20:21:21,826 - wallander.application (10224) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:21:21,826 - wallander.application (10224) - DEBUG - Data provider: <stagyy.DataProvider object at 0x7f38080bb3d0>
+2016-04-14 20:21:21,826 - wallander.data_providers (10224) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017']
+2016-04-14 20:21:21,826 - wallander.data_providers (10224) - DEBUG - Checking path: ['psd', 'psd03', 'psd_00017']
+2016-04-14 20:21:21,826 - stagyy (10224) - DEBUG - Checking path: /var/wallander/data/stagyy/psd/psd03/psd_00017
+2016-04-14 20:26:10,211 - wallander.cache (10224) - DEBUG - Checking cache items...
+2016-04-14 20:26:10,211 - wallander.cache (10224) - DEBUG - Checking cache items...

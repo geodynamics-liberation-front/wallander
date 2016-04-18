@@ -1,0 +1,79 @@
+/* The Toolbox */
+.toolbox {
+	position: fixed;
+	left: 0;
+	top: 1em;
+}
+
+.toolbox a{
+	text-decoration: none;
+}
+
+.toolset {
+	border-right: 1px solid #000000;
+	border-top: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	border-radius: 0px 0px 5px 0px;
+	background-color: rgba(222,222,222,1.0);
+	display: inline-block;
+	float: left; 
+	transition: margin-left linear 0.25s;
+	margin-left: -100%;
+	height: 400px;
+	padding: 5px;
+	overflow: hidden;
+	z-index: -10;
+}
+
+.toolset.expanded {
+	margin-left: 0px;
+}
+
+.toolset div {
+	margin: .5em;
+}
+
+.toolset img {
+	cursor: pointer;
+	display: block;
+	border: 1px solid rgba(222,222,222,1.0);
+}
+
+.toolset img.selected {
+	border: 1px solid rgba(200,200,200,1.0);
+}
+
+.toolset img:hover {
+	border: 1px solid rgba(200,200,200,1.0);
+}
+
+
+.handle {
+	cursor: pointer;
+	float: left;
+	display: inline-block; 
+	padding: 2px;
+	position: relative;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	margin-left: -1px;
+	height: 50px;
+	line-height: 50px;
+	border-right: 1px solid #000000;
+	border-top: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	border-radius: 0px 5px 5px 0px;
+	background-color: rgba(222,222,222,1.0);
+}
+
+.glf_projector_controls {
+white-space: nowrap;
+text-align: center;
+}
+
+.glf_projector_controls img {
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+}

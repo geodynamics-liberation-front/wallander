@@ -1,0 +1,28 @@
+<html>
+<head>
+	<title>Open Dataset</title>
+	<link rel="stylesheet" type="text/css" href="css/open_dataset.css">
+	<script src="js/config.js"></script>
+	<script src="js/ajax.js"></script>
+	<script src="js/dialog.js"></script>
+	<script src="js/open_dataset.js"></script>
+</head>
+<body>
+
+<div class="title_bar"><img id="close_button" src="close.svg" alt="close" /></div>
+<div class="breadcrumb_bar">
+	<object type="image/svg+xml" data="star.svg" id="favorite"></object>
+	<span id="breadcrumb">/</span>
+</div>
+<div id="navigation">
+<div id="contents"></div>
+<div id="favorites"></div>
+</div>
+</body>
+<script>
+window.onload = function() { 
+	open_dataset_init()
+	dialog_init()
+};
+</script>
+</html>

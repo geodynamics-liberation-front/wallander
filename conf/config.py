@@ -7,8 +7,6 @@ from logging.handlers import TimedRotatingFileHandler
 
 # The loger for this module
 LOG=logging.getLogger(__name__)
-print(__name__)
-print(wallander.LOG_TO_SCREEN)
 LOG.setLevel(logging.WARN)
 
 # The name of the loggers to configure

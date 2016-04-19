@@ -3,5 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# the data directory
 data/*
+log/*
+# vim backups
+.*.swp
+

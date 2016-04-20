@@ -1,1 +1,1 @@
-PYTHONPATH= ipy -i python/interactive.py
+PYTHONPATH= ipy --profile=wallander

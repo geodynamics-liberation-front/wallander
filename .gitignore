@@ -7,4 +7,5 @@ data/*
 log/*
 # vim backups
 .*.swp
-
+# wallander shell history
+profile_wallander/history.sqlite

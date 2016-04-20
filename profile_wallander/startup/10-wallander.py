@@ -1,4 +1,5 @@
-import sys
+import os
+import cStringIO
 
 print("Starting wallander interactive")
 
@@ -16,6 +17,11 @@ def start_response(status,headers):
 
 def get(url):
     response=application({"REQUEST_URI":url,"PATH_INFO":""},start_response)
+    out=cStringIO.StringIO()
     for r in response:
-        sys.stdout.write(r)
+        out.write(r)
+    response=out.getvalue()
+    out.close()
+    return response
 
+if os.path.exists('wallander_rc.py'): execfile('wallander_rc.py')

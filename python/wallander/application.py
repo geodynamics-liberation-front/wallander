@@ -30,7 +30,6 @@ DEFAULT_DATA_PROVIDER=HTMLDataProvider()
 # Frame data provider
 configuration['data_providers'][configuration['frame_prefix']]=FrameDataProvider()
 
-
 class Application(object):
     def __call__(self,environ,start_response):
         try:

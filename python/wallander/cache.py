@@ -18,6 +18,9 @@ class TimedCache(collections.MutableMapping):
                self.cache_invalidation_thread.daemon=True
                self.cache_invalidation_thread.start()
 
+    def _getcacheitem(self,key):
+        return self.store[key]
+
     def __getitem__(self, key):
         v=self.store.get(key)
         if v==None:
@@ -28,9 +31,6 @@ class TimedCache(collections.MutableMapping):
                 raise KeyError(key)
         v.last_access=time.time()
         return v.value
-
-    def __getcacheitem(self,key):
-        return self.store[key]
 
     def __setitem__(self, key, value):
         self.store[key] = CacheItem(value)
@@ -68,8 +68,8 @@ class CacheInvalidationThread(Thread):
         while self.running:
             LOG.debug("Checking cache items...")
             for cache in self.caches:
-                for k in cache:
-                    delta = time.time() - cache.__getcachetiem(k).last_access
+                for k in cache.keys():
+                    delta = time.time() - cache._getcacheitem(k).last_access
                     LOG.debug("Checking %s, %0.2f seconds old.",k,delta)
                     if delta > self.timeout:
                         LOG.debug("deleting %s",k)

@@ -41,9 +41,11 @@ class H5DataProvider(data_provider.BaseDataProvider):
             # check if it is a data source
             if len(slice_function)>0:
                 field=slice_function.pop(0)
-                response=response[field].data
+                response=response[field]
+                LOG.debug("Field %s resolves to %s",field,response)
 
                 if len(slice_function)>0:
+                    response=response.data
                     response=self.apply_slice_function(response,slice_function)
         elif len(slice_function)>0:
             LOG.debug("Requested folder with extra path info")
@@ -55,9 +57,7 @@ class H5DataProvider(data_provider.BaseDataProvider):
                 response.icon=self.icon
         else:
             response=open(fname)
-
         return response
-
 
 class H5Folder(object):
     """Just a regular folder in the data provider path, but it knows an H5Folder child when it sees it"""
@@ -95,12 +95,12 @@ class H5DataSourceFolder(object):
     """Creates a data source where each data field is stored in it's own hdf5 file"""
     def __init__(self,directory,c,icon='h5.svg'):
         self.directory=directory
-        self.cache=cache.TimedCache(create=self.create_datafiled,distroy=self.distroy_datafield,cache_invalidation_thread=c.cache_invalidation_thread)
+        self.cache=cache.TimedCache(create=self._create_datafield,distroy=self._distroy_datafield,cache_invalidation_thread=c.cache_invalidation_thread)
         self.fields={}
         self.icon=os.path.join(self.__module__,wallander.ICONS,icon)
 
-    def _create_datafield(self,filename):
-        return H5DataField(filename)
+    def _create_datafield(self,field_name):
+        return H5DataField(os.path.join(self.directory,field_name+'.h5'))
 
     def _distroy_datafield(self,ds):
         return
@@ -125,22 +125,22 @@ class H5DataSourceFolder(object):
         return files
     
     def __getitem__(self, key):
-        filename=os.path.join(self.directory,key+'.h5')
-        return self.cache(filename)
+        return self.cache[key]
 
     def __iter__(self):
-        pass
+        return iter(self.cache)
 
     def __len__(self):
-        pass
+        return len(self.cache)
 
 class H5DataField(object):
     def __init__(self,filename,
                       dataset_name='data',x_dataset_name='x',y_dataset_name='y',time_dataset_name='time',
                       unit_attr_name='unit',dimension_unit_attr_name='dimension_unit',format_attr_name='format',data_type_attr_name='data_type',
-                      x0_attr_name='x0',dx_attr_name='dx',y0_attr_name='y0',dy_attr_name='dy'):
+                      x0_attr_name='x0',dx_attr_name='dx',y0_attr_name='y0',dy_attr_name='dy',
+                      colormap_attr_name='colormap'):
         self.filename=filename
-        self.name=os.path.splitext(os.path.basename(file))[0]
+        self.name=os.path.splitext(os.path.basename(filename))[0]
         self.dataset_name=dataset_name
         self.x_dataset_name=x_dataset_name
         self.y_dataset_name=y_dataset_name
@@ -153,6 +153,8 @@ class H5DataField(object):
         self.dx_attr_name=dx_attr_name
         self.y0_attr_name=y0_attr_name
         self.dy_attr_name=dy_attr_name
+        self.colormap_attr_name=colormap_attr_name
+
         self._file=None
         self._data=None
         self._time=None
@@ -171,9 +173,11 @@ class H5DataField(object):
         return self.h5.attrs[self.y0_attr_name]
     def dimensions(self):
         return len(self.data.shape)-1
+    def colormap(self):
+        return self.h5.attr[self.colomap_attr_name]
     
     def __str__(self):
-        return "Field(%s)"%self.name
+        return "H5DataField(%s)"%self.name
 
     def __repr__(self):
         return self.__str__()
@@ -189,15 +193,12 @@ class H5DataField(object):
 
     @property
     def h5(self):
-        LOG.debug("_file: %s",self._file)
         if self._file==None:
-            LOG.debug("Opening H5 file %s",self.filename)
             self._file=h5py.File(self.filename,'r')
         return self._file
 
     @property
     def time(self):
-        LOG.debug("_time: %s",self._time)
         if self._time==None:
             self._time=self.h5[self.time_dataset]
         return self._time
@@ -212,18 +213,18 @@ class H5DataField(object):
     def to_json(self):
         j={
             "type": "data_source",
-            "name": self.name
+            "name": self.name,
+            "unit": self.h5.attrs[self.unit_attr_name],
+            "format": self.h5.attrs[self.format_attr_name],
+            "data_type": self.h5.attrs[self.data_type_attr_name],
+            "dimensions": self.dimensions(),
+            "dimension_unit": self.h5.attrs[self.dimension_unit_attr_name],
+            "dx": self.h5.attrs[self.dx_attr_name],
+            "x0": self.h5.attrs[self.x0_attr_name]
         }
-        if self._file!=None:
-            j['unit']=self.attr[self.unit_attr_name]
-            j['format']=self.attr[self.format_attr_name]
-            j['data_type']=self.attr[self.data_type_attr_name]
-            j['dimensions']=self.dimensions()
-            j['dimension_unit']=self.attr[self.dimension_unit_attr_name]
-            j['dx']=self.attr[self.dx_attr_name]
-            j['x0']=self.attr[self.x0_attr_name]
-            if self.dimensions>1:
-                j['dy']=self.attr[self.dy_attr_name]
-                j['y0']=self.attr[self.y0_attr_name]
+        if self.dimensions>1:
+            j['dy']=self.h5.attrs[self.dy_attr_name]
+            j['y0']=self.h5.attrs[self.y0_attr_name]
+        return j
 
 DATA_PROVIDER=H5DataProvider()

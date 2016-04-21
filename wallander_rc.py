@@ -3,6 +3,8 @@ import HDF
 import json
 import numpy as np
 
-config.add_logger(HDF.LOG)
+def add_logger(l):
+    config.add_logger(l)
 
+add_logger(HDF.LOG)
 

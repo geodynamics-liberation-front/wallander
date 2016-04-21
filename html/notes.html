@@ -66,16 +66,13 @@ extends OBJECT
 </pre>
 Data_types: text, vector, scalar, 1d, 2d, +time
 
-<h3>Data Field</h3>
-Well know data fields:
-timesteps: 
-<pre>
-{
-	unit: 's',
-	format: ?,
-	data_type: 'vector'
-}
-	
+<h3>Colormaps</h3>
+<pre>name-min-max-over-under-bad</pre>
+over,under,bad formated as hex strings RRGGBBAA.
+Any name can be appended with _log to get a log color map.
+<h4>Examples</h4>
+A colormap that uses Purple to Blue base colormap, has a min/max of 1e19/1e24 and an under color of  #2DD6D6 with and alpha of 0.2
+PuBu_log-1e19-1e24-2DD6D633
 
 
 </body>

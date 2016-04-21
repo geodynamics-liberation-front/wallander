@@ -136,15 +136,17 @@ class H5DataSourceFolder(object):
 class H5DataField(object):
     def __init__(self,filename,
                       dataset_name='data',x_dataset_name='x',y_dataset_name='y',time_dataset_name='time',
+                      attr_group_name='/',
                       unit_attr_name='unit',dimension_unit_attr_name='dimension_unit',format_attr_name='format',data_type_attr_name='data_type',
                       x0_attr_name='x0',dx_attr_name='dx',y0_attr_name='y0',dy_attr_name='dy',
-                      colormap_attr_name='colormap'):
+                      renderer_attr_name='renderer'):
         self.filename=filename
         self.name=os.path.splitext(os.path.basename(filename))[0]
         self.dataset_name=dataset_name
         self.x_dataset_name=x_dataset_name
         self.y_dataset_name=y_dataset_name
         self.time_dataset_name=time_dataset_name
+        self.attr_group_name=attr_group_name
         self.unit_attr_name=unit_attr_name
         self.dimension_unit_attr_name=dimension_unit_attr_name
         self.format_attr_name=format_attr_name
@@ -153,28 +155,30 @@ class H5DataField(object):
         self.dx_attr_name=dx_attr_name
         self.y0_attr_name=y0_attr_name
         self.dy_attr_name=dy_attr_name
-        self.colormap_attr_name=colormap_attr_name
+        self.renderer_attr_name=renderer_attr_name
 
         self._file=None
         self._data=None
         self._time=None
 
     def unit(self):
-        return self.h5.attrs[self.unit_attr_name]
+        return self.h5[self.attr_group_name].attrs[self.unit_attr_name]
     def format(self):
-        return self.h5.attrs[self.format_attr_name]
+        return self.h5[self.attr_group_name].attrs[self.format_attr_name]
+    def renderer(self):
+        return self.h5[self.attr_group_name].attrs[self.colomap_attr_name]
     def data_type(self):
-        return self.h5.attrs[self.data_type_attr_name]
+        return self.h5[self.attr_group_name].attrs[self.data_type_attr_name]
     def x0(self):
-        return self.h5.attrs[self.x0_attr_name]
+        return self.h5[self.attr_group_name].attrs[self.x0_attr_name]
     def dy(self):
-        return self.h5.attrs[self.dy_attr_name]
+        return self.h5[self.attr_group_name].attrs[self.dy_attr_name]
     def y0(self):
-        return self.h5.attrs[self.y0_attr_name]
+        return self.h5[self.attr_group_name].attrs[self.y0_attr_name]
     def dimensions(self):
         return len(self.data.shape)-1
-    def colormap(self):
-        return self.h5.attr[self.colomap_attr_name]
+    def dimension_unit(self):
+        return self.h5[self.attr_group_name].attrs[self.dimension_unit_attr_name]
     
     def __str__(self):
         return "H5DataField(%s)"%self.name
@@ -214,11 +218,12 @@ class H5DataField(object):
         j={
             "type": "data_source",
             "name": self.name,
-            "unit": self.h5.attrs[self.unit_attr_name],
-            "format": self.h5.attrs[self.format_attr_name],
-            "data_type": self.h5.attrs[self.data_type_attr_name],
+            "unit": self.unit(),
+            "format": self.format(),
+            "renderer": self.renderer(),
+            "data_type": self.data_type(),
             "dimensions": self.dimensions(),
-            "dimension_unit": self.h5.attrs[self.dimension_unit_attr_name],
+            "dimension_unit": self.dimension_unit(),
             "dx": self.h5.attrs[self.dx_attr_name],
             "x0": self.h5.attrs[self.x0_attr_name]
         }

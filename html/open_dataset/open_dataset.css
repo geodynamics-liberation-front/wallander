@@ -1,6 +1,5 @@
 /* Fonts */
-@import url("OpenSansCondensed.css");
-@import url("base.css");
+@import url("../css/base.css");
 
 body {
 background-color: rgb(255,255,255);
@@ -27,20 +26,32 @@ text-decoration: none;
 height: 1em;
 }
 
+.section_label {
+min-width: 1em;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+background-color: #777777;
+color: #dddddd;
+}
+
 #navigation {
 width:100%;
 }
 
 
 #contents {
-/* border: 1px solid rgb(100,0,0); */
 margin: 10px;
-/* background-color: rgb(240,240,240); */
+}
+
+#favorite {
+margin-left: 10px;
+margin-right: 10px;
 }
 
 a.icon {
-display: block;
-float: left;
+display: inline-block;
+/*float: left;*/
 /*width: 50;*/
 padding: 2px;
 text-align: center;

@@ -80,3 +80,22 @@ ColormapSelector.prototype.colormap_selector = function(c,f)
 	var self=this
 	return  function() { self.select(c); }
 }
+
+function toggle_toolset(e)
+{
+	e.stopPropagation();
+	e.preventDefault();
+	var anchor=e.target;
+	var ts=document.getElementById("toolset");
+	if( has_class(ts,"expanded") ) 
+	{
+		remove_class(ts,"expanded");
+		anchor.innerHTML="&#187;"
+	}
+	else
+	{
+		add_class(ts,"expanded");
+		anchor.innerHTML="&#171;"
+	}
+	return false;
+}

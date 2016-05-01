@@ -37,11 +37,16 @@ function open(l)
 	return false
 }
 
+function reset_toolbox()
+{
+	parent.toolbox.toolClick({target: parent.toolbox.default_tool.html_img})
+}
+
 function select(resp,loc)
 {
 	if(resp.type=='data_field')
 	{
-		parent.add_data_field(resp)
+		parent.data_field_mgr.add_data_field(resp)
 		dialog_close()
 	} 
 	else
@@ -62,12 +67,46 @@ function click_favorite()
 		uncolor_favorite()
 		var favndx=favorites.indexOf(ds_location)
 		favorites.splice(favndx,1)
+		list_favorites()
+		store_favorites()
 	}
 	else
 	{
-		color_favorite()
-		favorites.push(ds_location)
-		favorites.sort()
+		jsonCall(config['app_prefix']+ds_location,add_favorite)
+	}
+}
+
+function add_favorite(resp)
+{
+	color_favorite()
+	favorites.push(resp.path)
+	favorites.sort()
+	favorite_objects[resp.path]=resp
+	list_favorites()
+	store_favorites()
+}
+
+function store_favorites()
+{
+	if( localStorage )
+	{	
+		localStorage.setItem("OpenDataSetFavorites",JSON.stringify(favorites))		
+	}
+}
+
+function restore_favorites(resp,favs)
+{
+	if( resp )
+	{
+		add_favorite(resp)
+	}
+	else if( localStorage && "OpenDataSetFavorites" in localStorage)
+	{	
+		favs=JSON.parse(localStorage.getItem("OpenDataSetFavorites",JSON.stringify(favorites)))
+	}
+	if( favs && favs.length>0 )
+	{
+		jsonCall(config['app_prefix']+favs.shift(),restore_favorites,favs)
 	}
 }
 
@@ -87,15 +126,6 @@ function uncolor_favorite()
 	favorite=false
 }
 
-function list_favorites()
-{
-	var favdiv=document.getElementsById()
-	for(var n=0; n<favorites.length; n++)
-	{
-		var fav=favorites[n]
-		
-	}
-}
 
 function compare_kids(a,b)
 {
@@ -132,7 +162,6 @@ function list_folder(resp)
 	{
 		uncolor_favorite() 
 	}
-	
 
 	// List the contents of the folder
 	var contents=document.getElementById('contents')
@@ -141,29 +170,47 @@ function list_folder(resp)
 	contents.innerHTML=''
 	for(i=0;i<kids.length;i++)
 	{
-		c=kids[i]
-		var a=document.createElement('a')
-		a.className='icon';
-		a.href="#"
-		a.addEventListener('click',new Function('open("'+c.name+'"); return false;'))
-
-		// The icon
-		var icon=document.createElement('img');
-		icon.src=config['app_prefix']+c.icon
-		a.appendChild(icon)
-
-		// The label
-		var label;
-		var label=document.createElement('div')
-		label.innerHTML='display_name' in c ? c.display_name : c.name;
-		a.appendChild(label);
-
-		contents.appendChild(a)
+		contents.appendChild(create_icon(kids[i]))
 	}
+}
+
+function list_favorites()
+{
+	var contents=document.getElementById('favorites')
+	contents.innerHTML=''
+	for(i=0;i<favorites.length;i++)
+	{
+		favo= favorite_objects[favorites[i]]
+		contents.appendChild(create_icon(favorite_objects[favorites[i]],'path'))
+	}
+}
+
+function create_icon(c,addr)
+{
+	// the achor
+	addr=addr||'name'
+	var a=document.createElement('a')
+	a.className='icon';
+	a.href="#"
+	a.addEventListener('click',new Function('open("'+c[addr]+'"); return false;'))
+
+	// The icon
+	var icon=document.createElement('img');
+	icon.src=config['app_prefix']+c.icon
+	a.appendChild(icon)
+
+	// The label
+	var label;
+	var label=document.createElement('div')
+	label.innerHTML='display_name' in c ? c.display_name : c.name;
+	a.appendChild(label);
+
+	return a
 }
 
 function open_dataset_init()
 {
 	open('/');
+	restore_favorites()
 	document.getElementById('favorite').contentDocument.addEventListener('click',click_favorite);
 }

@@ -8,7 +8,8 @@
         number: /[def]/,
         text: /^[^\x25]+/,
         modulo: /^\x25{2}/,
-        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/,
+/*        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/, */
+        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(?:(_[., ]?))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/,
         key: /^([a-z_][a-z_\d]*)/i,
         key_access: /^\.([a-z_][a-z_\d]*)/i,
         index_access: /^\[(\d+)\]/,
@@ -52,15 +53,14 @@
                     arg = arg()
                 }
 
-                if (re.not_string.test(match[8]) && (get_type(arg) != "number" && isNaN(arg))) {
+                if (re.not_string.test(match[9]) && (get_type(arg) != "number" && isNaN(arg))) {
                     throw new TypeError(sprintf("[sprintf] expecting number but found %s", get_type(arg)))
                 }
 
-                if (re.number.test(match[8])) {
-                    is_positive = arg >= 0
-                }
+				sign=""
+				is_positive = re.number.test(match[9]) ? arg >= 0 : true
 
-                switch (match[8]) {
+                switch (match[9]) {
                     case "b":
                         arg = arg.toString(2)
                     break
@@ -68,19 +68,19 @@
                         arg = String.fromCharCode(arg)
                     break
                     case "d":
-                        arg = parseInt(arg, 10)
+                        arg = parseInt(arg, 10).toString()
                     break
                     case "e":
-                        arg = match[7] ? arg.toExponential(match[7]) : arg.toExponential()
+                        arg = match[8] ? arg.toExponential(match[8]) : arg.toExponential()
                     break
                     case "f":
-                        arg = match[7] ? parseFloat(arg).toFixed(match[7]) : parseFloat(arg)
+                        arg = match[8] ? parseFloat(arg).toFixed(match[8]) : parseFloat(arg).toString()
                     break
                     case "o":
                         arg = arg.toString(8)
                     break
                     case "s":
-                        arg = ((arg = String(arg)) && match[7] ? arg.substring(0, match[7]) : arg)
+                        arg = ((arg = String(arg)) && match[8] ? arg.substring(0, match[8]) : arg)
                     break
                     case "u":
                         arg = arg >>> 0
@@ -92,14 +92,24 @@
                         arg = arg.toString(16).toUpperCase()
                     break
                 }
-                if (!is_positive || (re.number.test(match[8]) && match[3])) {
+				if( match[3] && (match[9]=='d' || match[9]=='f')) {
+					seperator = match[3].length>1 ? match[3][1] : '\u2006'
+					var dp = arg.indexOf('.')
+					dp = dp<0 ? arg.length : dp
+					// Seperate the the numbers to the left of the decimal point
+					for (n=dp-3; n>0; n-=3)
+					{
+						arg=arg.substring(0,n)+seperator+arg.substring(n)	
+					}
+				}
+                if (!is_positive || (re.number.test(match[9]) && match[4])) {
                     sign = is_positive ? "+" : "-"
                     arg = arg.toString().replace(re.sign, "")
                 }
-                pad_character = match[4] ? match[4] == "0" ? "0" : match[4].charAt(1) : " "
-                pad_length = match[6] - (sign + arg).length
-                pad = match[6] ? str_repeat(pad_character, pad_length) : ""
-                output[output.length] = match[5] ? sign + arg + pad : (pad_character == 0 ? sign + pad + arg : pad + sign + arg)
+                pad_character = match[5] ? match[5] == "0" ? "0" : match[5].charAt(1) : " "
+                pad_length = match[7] - (sign + arg).length
+                pad = match[7] ? str_repeat(pad_character, pad_length) : ""
+                output[output.length] = match[6] ? sign + arg + pad : (pad_character == 0 ? sign + pad + arg : pad + sign + arg)
             }
         }
         return output.join("")
@@ -195,7 +205,7 @@
 })(typeof window === "undefined" ? this : window)
 /*
  *  display.js
- *  Utility functions
+ *  Utility functions and main Display object
  */
 var script_src=document.currentScript.src;
 var path=script_src.substring(0,script_src.lastIndexOf('/')+1)+'display/'
@@ -252,15 +262,56 @@ function get_img_url(img)
 }
 
 /*
+ * The data field manager
+ */
+function DataFieldManager(elem)
+{
+	this.elem=elem
+	this.reference_data_field=null;
+	this.data_fields={}
+}
+
+DataFieldManager.prototype.add_data_field = function(data_field)
+{
+	console.log('Adding data field: ')
+	console.log(data_field)
+	if( !('xy' in data_field) )
+	{
+		if( data_field.dimensions==1 )
+		{
+			data_field['x']=function(x) { return this.x0+this.dx*x }
+		}
+		else if ( data_field.dimensions==2 )
+		{
+			data_field['xy']=function(x,y) { return [this.x0+this.dx*x,this.y0+this.dy*y] }
+		}
+	}
+	if( !this.reference_data_field ) { this.reference_data_field=data_field }
+	this.data_fields[data_field.path]=data_field
+	movie.addDataField(data_field,'frame')
+
+	var display=document.getElementById('data_field_template').cloneNode(true)
+	display.id=data_field.path
+	this.elem.appendChild(display)
+}
+
+DataFieldManager.prototype.del_data_field = function(data_field)
+{
+	console.log('Deleting data field: ')
+	console.log(data_field)
+	delete this.data_fields[data_field]
+}
+
+/*
  * The depiction manager
  */
-function DepictionManager(elem,editor)
+function DepictionManager(elem)
 {
 	this.elem=elem;
-	this.editor=editor;
 	this.display=null;
 	this.depictions=[];
 }
+
 DepictionManager.prototype.addDepiction = function (obj,n)
 {
 	this.depictions.splice(n!=null?n:this.depictions.length,0,obj);
@@ -293,11 +344,6 @@ DepictionManager.prototype.removeDepiction = function (obj)
 
 DepictionManager.prototype.selectDepiction = function(obj)
 {
-	var editors=this.editor.children;
-	for( var i=0; i<editors.length; i++ )
-	{
-		editors[i].style.display='none';
-	}
 	for( var i=0; i<this.depictions.length; i++)
 	{
 		var d=this.depictions[i];
@@ -322,36 +368,9 @@ DepictionManager.prototype.selectDepiction = function(obj)
 /*
  *  The display object
  */
-function Display(parent,depiction_mgr)
+function Display(elem,depiction_mgr,data_field_mgr)
 {
-	// Add a stylesheet
-	add_stylesheet("display.css");
-	// Make the canvas as ours and put it in a frame
-	this.canvas=document.createElement("canvas");
-	this.canvas.width=100;
-	this.canvas.height=100;
-	this.canvas.tabIndex=0;
-	add_class(this.canvas,"glf_canvas");
-	this.container=document.createElement("div");
-	add_class(this.container,"glf_container");
-	this.container.appendChild(this.canvas);
-	parent.appendChild(this.container);
-	this.controls=document.createElement("div");
-	add_class(this.controls,"glf_controls");
-	parent.appendChild(this.controls);	
-	this.info=document.createElement("div");
-	add_class(this.info,"glf_info");
-	parent.appendChild(this.info);
-	this.info_status=document.createElement("div");
-	add_class(this.info_status,"glf_info_status");
-	this.info.appendChild(this.info_status);
-	this.model_info=document.createElement("div");
-	add_class(this.info,"glf_info");
-	this.info.appendChild(this.model_info);
-	
-
-	// Get the context
-	this.paper=this.canvas.getContext('2d');
+	var self=this
 
 	// Our internal state
 	this.w=0;
@@ -360,11 +379,41 @@ function Display(parent,depiction_mgr)
 	this.y=0;
 	this.zoom_level=1.0;
 	this.smooth=false;
+	this.data_field_mgr=data_field_mgr
+	this.data_field_mgr.display=this
+	Object.defineProperty(this,'reference_data_field',{ get: function() { return self.data_field_mgr.reference_data_field } } )
 	this.depiction_mgr=depiction_mgr;
+	this.depiction_mgr.display=this;
 	this.listeners={};
 
 	// The Current tool
-	this.tool=new AbstractTool();
+	this.tool=null;
+	// Add a stylesheet
+	add_stylesheet("display.css");
+
+	// Make the canvas
+	this.canvas=document.createElement("canvas");
+	this.paper=this.canvas.getContext('2d');
+	this.canvas.width=100;
+	this.canvas.height=100;
+	this.canvas.tabIndex=0;
+	add_class(this.canvas,"glf_canvas");
+	this.container=document.createElement("div");
+	add_class(this.container,"glf_container");
+	this.container.appendChild(this.canvas);
+	elem.appendChild(this.container);
+	this.controls=document.createElement("div");
+	add_class(this.controls,"glf_controls");
+	elem.appendChild(this.controls);	
+	this.info=document.createElement("div");
+	add_class(this.info,"glf_info");
+	elem.appendChild(this.info);
+	this.info_status=document.createElement("div");
+	add_class(this.info_status,"glf_info_status");
+	this.info.appendChild(this.info_status);
+	this.model_info=document.createElement("div");
+	add_class(this.info,"glf_info");
+	this.info.appendChild(this.model_info);
 
 	// Register some events
 	var self=this;
@@ -378,8 +427,9 @@ function Display(parent,depiction_mgr)
 	this.canvas.addEventListener('mousewheel',function(e) {self.tool.mousewheel(self,e);});
 	this.canvas.addEventListener('keydown',function(e) {self.tool.keydown(self,e);});
 	this.canvas.addEventListener('keyup',function(e) {self.tool.keyup(self,e);});
-
 	this.resize();
+	var rect = this.canvas.getBoundingClientRect();
+	this.updateXY({clientX:rect.left,clientY:rect.top})
 }
 
 Display.prototype.toString = function()
@@ -402,10 +452,27 @@ Display.prototype.setStatus = function(name,value,formatter)
 
 Display.prototype.updateXY = function(e)
 {
+	var self=this
 	var xy=this.xy(e);
+	xy.x=Math.floor(xy.x)
+	xy.y=Math.floor(xy.y)
+	var fmt="%s"
+	var df_x="-"
+	var df_y="-"
+	var unit=''
+	if( this.data_field_mgr.reference_data_field )
+	{
+		var df=this.data_field_mgr.reference_data_field
+		fmt=df.dimension_format
+		unit=df.dimension_unit
+		df_x=df.x0+xy.x*df.dx
+		df_y=df.y0+xy.y*df.dy
+	}
 	
-	this.setStatus('xy','<span class="label">XY:</span>('+Math.floor(xy.x)+','+Math.floor(xy.y)+')');
+	var status_string=sprintf('<span class="label">XY:</span>(%d,%d) / ('+fmt+' <span class="label">%s</span>,'+fmt+' <span class="label">%s</span>)',xy.x,xy.y,df_x,unit,df_y,unit)
+	this.setStatus('xy',status_string)
 }
+
 
 Display.prototype.addDepiction = function (obj,n)
 {
@@ -1015,38 +1082,6 @@ Movie.prototype.getBounds = function()
             height: height};
 }
 
-//Movie.prototype.getValues = function(x,y,callback)
-//{
-//	x=Math.floor(x)
-//	y=Math.floor(y)
-//	if( x<this.x || y<this.y )
-//	{
-//		for( var i=0; i<this.layers.length; i++)
-//		{
-//			callback(this.layers[i].name,'-')
-//		}
-//	}
-//	else
-//	{
-//		for( var i=0; i<this.layers.length; i++)
-//		{
-//			var layer=this.layers[i];
-//			if( x>this.x+layer.img.width ||
-//                y>this.y+layer.img.height )
-//			{
-//				callback(layer.name,'-')
-//			}
-//			else
-//			{
-//				var ndx=this.frame+','+y+','+x
-//				var self=this;
-//				var name=layer.name;
-//				jsonCall(layer.path+'frame/'+ndx,function(value,arg) { callback(arg,value); },name);
-//			}
-//		}
-//	}
-//}
-
 Movie.prototype.addDataField = function(data_field,frame_type)
 {
 	if( data_field_name in this.data_fields ) { return; }
@@ -1176,6 +1211,8 @@ function ToolBox(display)
 	var move_tool=new MoveTool();
 	this.addTool(move_tool);
 	add_class(move_tool.html_img,'selected');
+	this.default_tool=move_tool
+	display.tool=move_tool
 	this.display.tool=move_tool;	
 	this.addTool(new ProjectorTool(display.projector));
 	this.addTool(new MarkerTool());

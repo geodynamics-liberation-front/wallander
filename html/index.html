@@ -2,10 +2,15 @@
 <html>
 <head>
 	<link rel="stylesheet" type="text/css" href="css/index.css">
-	<script src="js/ajax.js"></script>
-	<script src="js/wallander_display.js"></script>
 	<script src="js/config.js"></script>
+	<script src="js/dialog.js"></script>
+	<script src="js/ajax.js"></script>
+	<script src="js/units.js"></script>
+	<script src="js/wallander_display.js"></script>
+	<script src="js/widgets.js"></script>
 <script>
+var depiction_mgr=null;
+var data_field_mgr=null;
 var projector=null;
 var toolbox=null;
 var display=null;
@@ -15,10 +20,9 @@ var data_fields={};
 function init()
 {
 	console.log("init");
-	depiction_mgr=new DepictionManager(document.getElementById("depictions"), document.getElementById("depiction_edit"));
-	display=new Display(document.getElementById("display"),depiction_mgr);
-	depiction_mgr.display=display;
-
+	depiction_mgr=new DepictionManager(document.getElementById("depiction_object_display"));
+	data_field_mgr=new DataFieldManager(document.getElementById("data_field_display"))
+	display=new Display(document.getElementById("display"),depiction_mgr,data_field_mgr);
 	display.addDepiction(new Background());
 	toolbox=new ToolBox(display);
 	movie=new Movie();
@@ -26,153 +30,14 @@ function init()
 	setTimeout( function(e) {display.resize();}, 200);
 }
 
-function add_data_field(data_field)
-{
-	console.log('Adding data field: ')
-	if( !('xy' in data_field) )
-	{
-		if( data_field.dimensions==1 )
-		{
-			data_field['x']=function(x) { return this.x0+this.dx*x }
-		}
-		else if ( data_field.dimensions==2 )
-		{
-			data_field['xy']=function(x,y) { return [this.x0+this.dx*x,this.y0+this.dy*y] }
-		}
-	}
-	console.log(data_field)
-	data_fields[data_field.path]=data_field
-	movie.addDataField(data_field,'frame')
-}
-
-function del_data_field(data_field)
-{
-	console.log('Deleting data field: ')
-	console.log(data_field)
-	delete data_fields[data_field]
-}
-
-function set_fields(model)
-{
-	var e=document.getElementById('movie_fields')
-	e.innerHTML='';
-	var fields=model.fields.sort()
-	for( var i=0; i<fields.length; i++)
-	{
-		field=fields[i];
-		var r=document.createElement('tr');
-
-		// Check box
-		var cb=document.createElement('input');
-		cb.type='checkbox';
-		cb.name=field;
-		cb.model=model.name;
-		cb.addEventListener('change',toggle_field);
-		var d=document.createElement('td');	
-		d.appendChild(cb);
-		r.appendChild(d);
-
-		// Field name
-		var d=document.createElement('td');	
-		d.appendChild(document.createTextNode(' '+field+' '));
-		r.appendChild(d);
-
-		// Min value
-		var d=document.createElement('td');	
-		var min=document.createElement('input');
-		min.name=field+'_min';
-		min.type='text';
-		d.appendChild(min)
-		r.appendChild(d);
-
-		// Dash
-		var d=document.createElement('td');	
-		d.appendChild(document.createTextNode('-'));
-		r.appendChild(d);
-		// Max value
-		var d=document.createElement('td');	
-		var max=document.createElement('input');
-		max.name=field+'_max';
-		max.type='text';
-		d.appendChild(max)
-		r.appendChild(d);
-
-		var d=document.createElement('td');	
-		var status=document.createElement('span');
-		status.id=field+'_status';
-		d.appendChild(status);
-		r.appendChild(d);
-
-		e.appendChild(r);
-	}
-}
-
-function set_movie(timesteps)
-{
-	model.timesteps=timesteps;
-	document.getElementById('movie_par').innerHTML='<a href="/models/'+model.name+'/'+model.par+'" target="par">par</a>';
-	document.getElementById('movie_frames').innerHTML=timesteps.length;
-	document.getElementById('movie_time').innerHTML=sprintf('%0.1f<spam class="label">Ma</span>',timesteps[timesteps.length-1][1]/(1e6*365.25*24*3600));
-	movie.reset(model.name,timesteps);
-	display.redraw();
-}
-
-function toggle_field(e)
-{
-	var input=e.target;
-	var name=input.name;
-	if( input.checked )
-	{
-		var model=input.model;
-		movie.addLayer(name,'/models'+model+'/'+name+'/');
-	}
-	else
-	{
-		movie.removeLayer(name);
-	}
-	display.redraw();
-}
-
-
-function toggle_toolset(e)
-{
-	e.stopPropagation();
-	e.preventDefault();
-	var anchor=e.target;
-	var ts=document.getElementById("toolset");
-	if( has_class(ts,"expanded") ) 
-	{
-		remove_class(ts,"expanded");
-		anchor.innerHTML="&#187;"
-	}
-	else
-	{
-		add_class(ts,"expanded");
-		anchor.innerHTML="&#171;"
-	}
-	return false;
-}
-
-function show_dialog()
-{
-	var dialog=document.getElementById('dialog');
-	dialog.style.display='block';
-	toolbox.close()
-}
-
-function hide_dialog()
-{
-	var dialog=document.getElementById('dialog');
-	dialog.style.display='none';
-}
-
-
 </script>
 <style>
+/* templates */
+.templates { display: none; }
 /* Depcition display */
 .depiction_display  .data_field_value {
 	display: inline-block;
-	width: 5em;
+	width: 6em;
 	text-align: right;
 }
 
@@ -196,18 +61,17 @@ function hide_dialog()
 	<span id="xy_unit_status"></span>
 </div>
 <div>
-<div class="depiction_display"></div>
-		<div id="data_field_display">
-		</div>
-		<div id="depiction_object_display">
-		</div>
+<div id="depictions" class="depiction_display"></div>
+		<div id="data_field_display"></div>
+		<div id="depiction_object_display"></div>
 </div>
 
-<div id="display_templates" class="depiction_display">
+<div class="templates depiction_display">
 	<div id="data_field_template">
-		<div>
+		<div class="depiction_status">
 			<span class="depiction_name label closed">name</span>
-			<span class="data_field_value">value</span></td>
+			<span class="data_field_value">value</span>
+			<div class="depection_editor"></div>
 		</div>
 	</div>
 	</div>
@@ -219,7 +83,7 @@ function hide_dialog()
 </div>
 
 <script>
-init();
+window.onload = function() { init() };
 </script>
 </body>
 </html>

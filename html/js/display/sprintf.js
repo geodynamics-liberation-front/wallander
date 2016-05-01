@@ -8,7 +8,8 @@
         number: /[def]/,
         text: /^[^\x25]+/,
         modulo: /^\x25{2}/,
-        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/,
+/*        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/, */
+        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(?:(_[., ]?))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/,
         key: /^([a-z_][a-z_\d]*)/i,
         key_access: /^\.([a-z_][a-z_\d]*)/i,
         index_access: /^\[(\d+)\]/,
@@ -52,15 +53,14 @@
                     arg = arg()
                 }
 
-                if (re.not_string.test(match[8]) && (get_type(arg) != "number" && isNaN(arg))) {
+                if (re.not_string.test(match[9]) && (get_type(arg) != "number" && isNaN(arg))) {
                     throw new TypeError(sprintf("[sprintf] expecting number but found %s", get_type(arg)))
                 }
 
-                if (re.number.test(match[8])) {
-                    is_positive = arg >= 0
-                }
+				sign=""
+				is_positive = re.number.test(match[9]) ? arg >= 0 : true
 
-                switch (match[8]) {
+                switch (match[9]) {
                     case "b":
                         arg = arg.toString(2)
                     break
@@ -68,19 +68,19 @@
                         arg = String.fromCharCode(arg)
                     break
                     case "d":
-                        arg = parseInt(arg, 10)
+                        arg = parseInt(arg, 10).toString()
                     break
                     case "e":
-                        arg = match[7] ? arg.toExponential(match[7]) : arg.toExponential()
+                        arg = match[8] ? arg.toExponential(match[8]) : arg.toExponential()
                     break
                     case "f":
-                        arg = match[7] ? parseFloat(arg).toFixed(match[7]) : parseFloat(arg)
+                        arg = match[8] ? parseFloat(arg).toFixed(match[8]) : parseFloat(arg).toString()
                     break
                     case "o":
                         arg = arg.toString(8)
                     break
                     case "s":
-                        arg = ((arg = String(arg)) && match[7] ? arg.substring(0, match[7]) : arg)
+                        arg = ((arg = String(arg)) && match[8] ? arg.substring(0, match[8]) : arg)
                     break
                     case "u":
                         arg = arg >>> 0
@@ -92,14 +92,24 @@
                         arg = arg.toString(16).toUpperCase()
                     break
                 }
-                if (!is_positive || (re.number.test(match[8]) && match[3])) {
+				if( match[3] && (match[9]=='d' || match[9]=='f')) {
+					seperator = match[3].length>1 ? match[3][1] : '\u2006'
+					var dp = arg.indexOf('.')
+					dp = dp<0 ? arg.length : dp
+					// Seperate the the numbers to the left of the decimal point
+					for (n=dp-3; n>0; n-=3)
+					{
+						arg=arg.substring(0,n)+seperator+arg.substring(n)	
+					}
+				}
+                if (!is_positive || (re.number.test(match[9]) && match[4])) {
                     sign = is_positive ? "+" : "-"
                     arg = arg.toString().replace(re.sign, "")
                 }
-                pad_character = match[4] ? match[4] == "0" ? "0" : match[4].charAt(1) : " "
-                pad_length = match[6] - (sign + arg).length
-                pad = match[6] ? str_repeat(pad_character, pad_length) : ""
-                output[output.length] = match[5] ? sign + arg + pad : (pad_character == 0 ? sign + pad + arg : pad + sign + arg)
+                pad_character = match[5] ? match[5] == "0" ? "0" : match[5].charAt(1) : " "
+                pad_length = match[7] - (sign + arg).length
+                pad = match[7] ? str_repeat(pad_character, pad_length) : ""
+                output[output.length] = match[6] ? sign + arg + pad : (pad_character == 0 ? sign + pad + arg : pad + sign + arg)
             }
         }
         return output.join("")

@@ -340,38 +340,6 @@ Movie.prototype.getBounds = function()
             height: height};
 }
 
-//Movie.prototype.getValues = function(x,y,callback)
-//{
-//	x=Math.floor(x)
-//	y=Math.floor(y)
-//	if( x<this.x || y<this.y )
-//	{
-//		for( var i=0; i<this.layers.length; i++)
-//		{
-//			callback(this.layers[i].name,'-')
-//		}
-//	}
-//	else
-//	{
-//		for( var i=0; i<this.layers.length; i++)
-//		{
-//			var layer=this.layers[i];
-//			if( x>this.x+layer.img.width ||
-//                y>this.y+layer.img.height )
-//			{
-//				callback(layer.name,'-')
-//			}
-//			else
-//			{
-//				var ndx=this.frame+','+y+','+x
-//				var self=this;
-//				var name=layer.name;
-//				jsonCall(layer.path+'frame/'+ndx,function(value,arg) { callback(arg,value); },name);
-//			}
-//		}
-//	}
-//}
-
 Movie.prototype.addDataField = function(data_field,frame_type)
 {
 	if( data_field_name in this.data_fields ) { return; }

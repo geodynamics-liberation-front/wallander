@@ -21,6 +21,8 @@ function ToolBox(display)
 	var move_tool=new MoveTool();
 	this.addTool(move_tool);
 	add_class(move_tool.html_img,'selected');
+	this.default_tool=move_tool
+	display.tool=move_tool
 	this.display.tool=move_tool;	
 	this.addTool(new ProjectorTool(display.projector));
 	this.addTool(new MarkerTool());

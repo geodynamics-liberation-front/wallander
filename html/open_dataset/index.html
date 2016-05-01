@@ -1,7 +1,7 @@
 <html>
 <head>
 	<title>Open Dataset</title>
-	<link rel="stylesheet" type="text/css" href="../css/open_dataset.css">
+	<link rel="stylesheet" type="text/css" href="open_dataset.css">
 	<script src="../js/config.js"></script>
 	<script src="../js/ajax.js"></script>
 	<script src="../js/dialog.js"></script>
@@ -14,15 +14,15 @@
 	<object type="image/svg+xml" data="star.svg" id="favorite"></object>
 	<span id="breadcrumb">/</span>
 </div>
-<div id="navigation">
+<div id="navigation"></div>
 <div id="contents"></div>
+<div class="section_label">favorites</div>
 <div id="favorites"></div>
-</div>
-</body>
 <script>
 window.onload = function() { 
 	open_dataset_init()
-	dialog_init()
+	dialog_init(reset_toolbox)
 };
 </script>
+</body>
 </html>

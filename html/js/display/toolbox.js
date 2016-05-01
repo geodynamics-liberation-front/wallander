@@ -1,5 +1,5 @@
 /* 
- * The ToolBox
+ * toolbox.js
  */
 function ToolBox(display)
 {

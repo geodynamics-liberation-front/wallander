@@ -1,21 +1,207 @@
 import logging 
 import os
-import inspect
 import numpy as np
+import re
+import response
 import Queue
-import matplotlib.pylab as plt
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.pylab import Normalize, register_cmap, colormaps, get_cmap
+from matplotlib.colors import LinearSegmentedColormap 
 from threading import Thread
+from config import configuration
 import png
 
 # The logger for this module
 LOG=logging.getLogger(__name__)
 
-def kwargs_to_str(self,kwargs):
-    return ','.join([str(k)+'='+str(v) for k,v in sorted(kwargs.items())])
+# Colormap Regular Expression
+# Has the following capture groups: name, min, max, under color, over color, bad color
+regex={
+    'letters_numbers': '[a-zA-Z0-9_]*',
+    'float': '[+-]?\d+\.?\d*e?-?\d+',
+    'hex': '[a-fA-F0-9]*' }
 
-def str_to_kwargs(self,str):
-    return dict([s.split("=") for s in str.split(',')])
+CM_RE=re.compile('(%(letters_numbers)s)-?(%(float)s)?-?(%(float)s)?-?(%(hex)s)?-?(%(hex)s)?-?(%(hex)s)?'%regex)
+FRAME_RE=re.compile('([a-zA-Z0-9]+)\.(.*)\.(\d+)\.([a-z]+)')
+
+RENDERERS={}
+
+#COLORBAR_ARRAY=np.array(range(0,256)*7+( [-1000]*96+[1000]*96+[np.nan]*64 )*3).reshape(10,256)
+COLORBAR_ARRAY=np.tile(np.linspace(0,255,256),(10,1))
+COLORBAR_ARRAY_UNDER=np.tile(np.concatenate((-1*np.ones(10),np.linspace(0,255,246))),(10,1))
+COLORBAR_ARRAY_OVER= np.tile(np.concatenate((np.linspace(0,255,246),256*np.ones(10))),(10,1))
+COLORBAR_ARRAY_UNDER_OVER=np.tile(np.concatenate((-1*np.ones(10),np.linspace(0,255,236),256*np.ones(10))),(10,1))
+
+class FrameDataProvider(object):
+    def __call__(self,environ,start_response,path):
+        LOG.debug('Path: %s',path)
+        image_file=os.path.join(configuration['frame_dir'],*path)
+        LOG.debug("Image file: %s",image_file)
+        if len(path)>0 and path[0][0:1]=='_':
+            try:
+                f=getattr(self,path[0])
+                return f(environ,start_response,path[1:])
+            except AttributeError:
+                return response.respond_not_found(start_response)
+        else:
+            data_provider=path.pop(0)
+            image=path.pop()
+            LOG.debug("Data provider name: '%s'",data_provider)
+            LOG.debug("Frame: '%s'",image)
+            m=FRAME_RE.match(image)
+            if m:
+                field,renderer_string,frame_number,extension=m.groups()
+                frame_number=int(frame_number)
+                LOG.debug("Field: %s, Frame Number: %d, Renderer: %s, Extension %s",field,frame_number,renderer_string,extension)
+                path.append(field)
+                path.append(str(frame_number))
+                dp=configuration['data_providers'].get(data_provider)
+                LOG.debug("Data provider: %s",str(dp))
+                frame=dp.call(environ,start_response,path)
+                renderer=get_renderer(renderer_string)
+                image_dir=os.path.dirname(image_file)
+                if not os.path.exists(image_dir):
+                    os.makedirs(image_dir)
+                renderer.write(frame,image_file)
+                return response.respond_file(image_file,environ,start_response)
+            else:
+                LOG.warning('%s does not match regular expression',image)
+                return response.respond_not_found(start_response)
+
+    def _render_all(self,environ,start_Response,path):
+        pass
+    def _colormaps(self,environ,start_response,path):
+        return response.respond_ok([c for c in colormaps() if not c.endswith('_r')],start_response)
+    def _colorbar(self,environ,start_response,path):
+        renderer=Renderer(os.path.splitext(path[0])[0])
+        array=COLORBAR_ARRAY
+        if renderer.cmap._rgba_under and renderer.cmap._rgba_over:
+            array=COLORBAR_ARRAY_UNDER_OVER
+        elif renderer.cmap._rgba_under:
+            array=COLORBAR_ARRAY_UNDER
+        elif renderer.cmap._rgba_over:
+            array=COLORBAR_ARRAY_OVER
+        image_dir=os.path.join(configuration['frame_dir'],'_colorbar')
+        if not os.path.exists(image_dir): os.makedirs(image_dir)
+        image_file=os.path.join(image_dir,path[0])
+        renderer.write(array,image_file)
+        return response.respond_file(image_file,environ,start_response)
+
+class ArrowDataProvider(object):
+    def __call__(self,environ,start_response,path):
+        pass
+
+class ContourDataProvider(object):
+    def __call__(self,environ,start_response,path):
+        pass
+
+def get_renderer(name):
+    r=RENDERERS.get(name)
+    if not r:
+        r=Renderer(name)
+        RENDERERS[name]=r
+    return r
+
+class Renderer(object):
+    def __init__(self,name):
+        self.name=name
+        self.log=False
+        self.filter=lambda x:x
+        self.vmin=None
+        self.vmax=None
+        self._norm=None
+        self.compression=6
+        self.set_depth(8)
+
+        m=CM_RE.match(name)
+        if m!=None:
+            LOG.debug("%s -> %s",name,repr(m.groups()))
+            cmap,min_val,max_val,under_color,over_color,bad_color=m.groups()
+            if cmap.endswith('_log'):
+                self.filter=np.log10
+                self.log=True
+                cmap=cmap[:-4]
+            self.cmap=get_cmap(cmap)
+
+            if min_val and max_val: 
+                self.set_minmax(float(min_val),float(max_val))
+
+            if under_color: self.cmap.set_under('#'+under_color[:6],alpha=int(under_color[6:],16)/255.0 if under_color[6:] else 1.0)
+            if over_color: self.cmap.set_over('#'+over_color[:6],alpha=int(over_color[6:],16)/255.0 if over_color[6:] else 1.0)
+            if bad_color: self.cmap.set_bad('#'+bad_color[:6],alpha=int(bad_color[6:],16)/255.0 if bad_color[6:] else 1.0)
+
+        try:
+            from PIL import Image
+            self.Image=Image
+            self._write=self._write_pil
+            LOG.debug('Using PIL for image writing')
+        except ImportError:
+            self._write=self._write_png
+            LOG.debug('Using PNG for image writing')
+
+    def set_depth(self,depth):
+        self._depth=depth
+        if depth==64:
+            self._dtype=np.uint64
+        elif depth==32:
+            self._dtype=np.uint32
+        elif depth==16:
+            self._dtype=np.uint16
+        else:
+            self._dtype=np.uint8
+        self._max_val=2**depth-1
+
+    def get_depth(self):
+        return self._depth;
+
+    def set_minmax(self,vmin,vmax):
+        self.vmin=min(vmin,vmax)
+        self.vmax=max(vmin,vmax)    
+        self.set_normalize(Normalize(self.filter(vmin),self.filter(vmax)))
+
+    def get_minmax(self):
+        return (self.vmin,self.vmax)
+
+    def set_normalize(self,norm):
+        self._norm=norm
+
+    def get_normalize(self):
+        return self._norm
+
+    def _write_png(self,img,out,comp):
+        LOG.debug("shape: %s",img.shape)
+        size=img.shape[1::-1]
+        img=img.reshape(img.shape[0],img.shape[1]*img.shape[2])
+        LOG.debug("reshape: %s",img.shape)
+        writer=png.Writer(size=size,alpha=True,bitdepth=self._depth,compression=comp)
+        out_file=open(out,'wb')
+        writer.write(out_file,img)
+        out_file.close()
+
+    def _write_pil(self,img,out,comp):
+        i=self.Image.fromarray(img,'RGBA')
+        i.save(out,compress_level=comp,bits=self._depth)
+
+    def _write(self,img,out,comp):
+        assert False, "The renderer _write method should have been set to either _write_png or _write_pil"
+
+    def write(self,frame,out_filename,compression=None):
+        comp = compression or self.compression 
+        norm = self._norm or Normalize(self.filter(frame.min()),self.filter(frame.max()))
+        img=(self._max_val*self.cmap(norm(self.filter(frame)))).astype(self._dtype)
+        self._write(img,out_filename,comp)
+
+    def _colorbar_array(self,colors,size):
+        ncolors=2**self._depth if colors==None else colors
+        spacer=np.logspace if self.log else np.linspace
+        return np.vstack([spacer(ncolors,0,ncolors)]*size)
+
+    def write_h_colorbar(self,out,colors=None,height=20):
+        a = self._colorbar_array(colors,height)[:,::-1]
+        self.write(a,out)
+
+    def write_v_colorbar(self,out,colors=None,width=20):
+        a = self._colorbar_array(colors,width).T
+        self.write(a,out)
 
 def litho_colormap(min,max,boundary=1600.0,width=20):
     if boundary<min or boundary>max:
@@ -43,7 +229,7 @@ def litho_colormap(min,max,boundary=1600.0,width=20):
                        (                  1.0, 0.0 , 0.0))}
 
     cm=LinearSegmentedColormap('lithosphere_%d'%boundary, cdict)
-    plt.register_cmap(cmap=cm)
+    register_cmap(cmap=cm)
     return cm
 
 def alpha_colormap(name,red,green,blue,alpha_min=0.0,alpha_max=1.0):
@@ -56,7 +242,7 @@ def alpha_colormap(name,red,green,blue,alpha_min=0.0,alpha_max=1.0):
              'alpha':  ((0.0,alpha_min,alpha_min),
                         (1.0,alpha_max,alpha_max))}
     cm=LinearSegmentedColormap(name, cdict)
-    plt.register_cmap(cmap=cm)
+    register_cmap(cmap=cm)
     return cm
 
 
@@ -70,178 +256,6 @@ def write_frames(frames,filename,renderer,filter=lambda x:x,overwrite=True):
         yield fname
         n+=1
 
-class ColormapManager(object):
-    def __init__(self,dir):
-        self.dir=dir
-        if not os.path.exists(self.dir):
-            os.makedirs(self.dir)
-        for cm in plt.cm.datad.keys():
-            self._plot_colormap(cm);
-
-    def get_colormaps(self):
-        return plt.cm.datad.keys()
-
-    def add_colormap(self,cm):
-        self._plot_colormap(cm.name);
-
-    def _plot_colormap(self,cm):
-        r=Renderer(colormap=plt.get_cmap(cm))
-        name=os.path.join(self.dir,cm+"_h.png")
-        if not os.path.exists(name):
-            f=open(name,'wb')
-            r.write_h_colorbar(f)
-            f.close()
-        name=os.path.join(self.dir,cm+"_v.png")
-        if not os.path.exists(name):
-            f=open(name,'wb')
-            r.write_v_colorbar(f)
-            f.close()
-    
-    def get_hcolormap(self,cm):
-        return os.path.join(self.dir,cm+"_h.png")
-
-    def get_vcolormap(self,cm):
-        return os.path.join(self.dir,cm+"_v.png")
-
-class Renderer(object):
-    def __init__(self,vmin=None,vmax=None,
-                 filter=lambda x:x, 
-                 depth=8,compression=6,
-                 colormap=plt.get_cmap('jet'),
-                 over_color=None, over_alpha=1.0,
-                 under_color=None, under_alpha=1.0,
-                 bad_color=None, bad_alpha=1.0,
-                 gamma=1.0):
-        self.filter=filter
-
-        if vmin!=None and vmax!=None:
-            self.set_minmax(float(vmin),float(vmax))
-        else:
-            self.vmin=None
-            self.vmax=None
-            self._norm=None
-        if compression!=None:
-            compression=int(compression)
-        self.compression=compression
-
-        self.set_depth(int(depth))
-
-        if isinstance(colormap,str):
-            self.colormap=plt.get_cmap(colormap)
-        else:
-            self.colormap=colormap
-        if over_color!=None:
-            try:
-                int(over_color,16)
-                over_color='#'+over_color
-            except ValueError:
-                pass
-            self.colormap.set_over(over_color,alpha=float(over_alpha))
-        if under_color!=None:
-            try:
-                int(under_color,16)
-                under_color='#'+under_color
-            except ValueError:
-                pass
-            self.colormap.set_under(under_color,alpha=float(under_alpha))
-        if bad_color!=None:
-            self.colormap.set_bad(bad_color,alpha=float(bad_alpha))
-        self.colormap.set_gamma(float(gamma))
-        try:
-            from PIL import Image
-            self.Image=Image
-            self.write=self._write_pil
-        except ImportError:
-            self.write=self._write_png
-
-    def set_depth(self,depth):
-        self._depth=depth
-        if depth==64:
-            self._dtype=np.uint64
-        elif depth==32:
-            self._dtype=np.uint32
-        elif depth==16:
-            self._dtype=np.uint16
-        else:
-            self._dtype=np.uint8
-        self._max_val=2**depth-1
-
-    def get_depth(self):
-        return self._depth;
-
-    def set_minmax(self,vmin,vmax):
-        self.vmin=min(vmin,vmax)
-        self.vmax=max(vmin,vmax)    
-        self.set_normalize(plt.Normalize(self.filter(vmin),self.filter(vmax)))
-
-    def get_minmax(self):
-        return (self.vmin,self.vmax)
-
-    def set_normalize(self,norm):
-        self._norm=norm
-
-    def get_normalize(self):
-        return self._norm
-
-    def as_rgba(self,a):
-        norm=self._norm if self._norm!=None else plt.Normalize(self.filter(a.min()),self.filter(a.max()))
-        img=(self._max_val*self.colormap(norm(self.filter(a)))).astype(self._dtype)
-        return img.reshape(img.shape[0],img.shape[1]*img.shape[2])
-    
-    def _write_png(self,a,out,compression=None):
-        comp = self.compression if compression==None else compression
-        norm=self._norm if self._norm!=None else plt.Normalize(self.filter(a.min()),self.filter(a.max()))
-        writer=png.Writer(size=a.shape[::-1],alpha=True,bitdepth=self._depth,compression=comp)
-        img=(self._max_val*self.colormap(norm(self.filter(a)))).astype(self._dtype)
-        img=img.reshape(img.shape[0],img.shape[1]*img.shape[2])
-        out_file=open(out,'wb')
-        writer.write(out_file,img)
-        out_file.close()
-
-    def _write_pil(self,a,out,compression=None):
-        comp = self.compression if compression==None else compression
-        norm=self._norm if self._norm!=None else plt.Normalize(self.filter(a.min()),self.filter(a.max()))
-        img=(self._max_val*self.colormap(norm(self.filter(a)))).astype(self._dtype)
-        i=self.Image.fromarray(img,'RGBA')
-        i.save(out,compress_level=comp,bits=self._depth)
-
-    def write(self,a,out,compression=None):
-        assert False, "The rendere write method should have been set to either _write_png or _write_pil"
-
-    def _colorbar_array(self,colors,size):
-        ncolors=2**self._depth if colors==None else colors
-        return np.vstack([np.linspace(ncolors,0,ncolors)]*size)
-
-    def write_h_colorbar(self,out,colors=None,height=20):
-        a = self._colorbar_array(colors,height)[:,::-1]
-        self.write(a,out)
-
-    def write_v_colorbar(self,out,colors=None,width=20):
-        a = self._colorbar_array(colors,width).T
-        self.write(a,out)
-
-class Log10Renderer(Renderer):
-    def __init__(self,**kwargs):
-        kwargs['filter']=np.log10
-        super(Log10Renderer, self).__init__(**kwargs)
-
-    def colorbar(self,colors=None,width=20):
-        vmin=np.log10(self.vmin)
-        vmax=np.log10(self.vmax)
-        ncolors=2**self._depth if colors==None else colors
-        a=10**np.vstack([np.linspace(vmax,vmin,ncolors)]*width).T
-        return self.render(a);
-
-def get_init_args(klass,args):
-    try:
-        argspec=inspect.getargspec(klass.__init__)
-        args.update(argspec.args)
-        if argspec.keywords!=None:
-            for b in klass.__bases__:
-                get_init_args(b,args)
-    except TypeError:
-        pass
-
 class Gallery(Thread):
     def __init__(self):
         super(Gallery, self).__init__()
@@ -250,24 +264,6 @@ class Gallery(Thread):
         self._renderer_classes={}
         self._progress={}
         self.running=False
-
-    def register_renderer(self,name,klass,defaults):
-        init_args=set()
-        get_init_args(klass,init_args)
-        self._renderer_classes[name]=(klass,init_args,defaults)
-
-    def get_renderer(self,renderer_name):
-        try:
-            r_class,init_args,defaults=self._renderer_classes[renderer_name]
-        except KeyError:
-            r_class=Renderer
-            init_args=set()
-            get_init_args(r_class,init_args)
-            defaults={}
-        return r_class,init_args,defaults
-
-    def kwargs_to_str(self,name,kwargs):
-        return name+'-'+','.join([str(k)+'='+str(v) for k,v in sorted(kwargs)])
 
     def get_img(self,dir,renderer_name,frame_num,kwargs):
         r_class,init_args,defaults=self.get_renderer(renderer_name)

@@ -1,5 +1,5 @@
 from config import configuration,add_logger
-from pkg_resources import resource_string
+from pkg_resources import resource_stream
 import inspect
 import logging
 import numpy
@@ -24,7 +24,6 @@ class BaseDataProvider(object):
 
     def apply_slice_function(self,frame,slice_function):
         if len(slice_function)>0:
-
             # slice the frame
             slc=slice_function.pop(0)
             LOG.debug("Slice: %s",slc)
@@ -45,21 +44,41 @@ class BaseDataProvider(object):
 
     def __call__(self,environ,start_response,path):
         LOG.debug("Checking path: %s",path)
-        result=self.call(environ,start_response,path[:])
         # Handle special calls to methods that start with '_'
-        if result==None and path[0][0:1]=='_':
+        if len(path)>0 and path[0][0:1]=='_':
             try:
                 f=getattr(self,path[0])
-                result=f(environ,start_response,path[1:])
+                return f(environ,start_response,path[1:])
             except AttributeError:
-                result=None
-        return result
+                return response.respond_not_found(start_response)
+        else:
+            result=self.call(environ,start_response,path[:])
+            if hasattr(result,'read'): 
+                return response.respond_file(result,environ,start_response)
+            elif result==None:
+                return response.respond_not_found(start_response)
+            else:
+                return response.respond_ok(result,start_response)
 
-    def _icons(self,environ,start_response,path):
+    def _resources(self,environ,start_response,path):
+        LOG.debug('Getting resource: %s',os.path.join('roesources',*path))
+        stream=None
         try:
-            return resource_string(self.__module__+'._icons',path[0])
+            resource=os.path.join('resources',*path)
+            LOG.debug('Attempting %s,%s',self.__module__,resource)
+            stream=resource_stream(self.__module__,resource)
         except IOError:
-            return resource_string('wallander._icons',path[0])
+            resource=os.path.join('resources',*path)
+            LOG.debug('Attempting %s,%s','wallander',resource)
+            try:
+                stream=resource_stream('wallander',resource)
+            except IOError:
+                if path[0]=='icons':
+                    stream=resource_stream('wallander','resources/icons/unknown.svg')
+        if stream:
+            return response.respond_file(stream,environ,start_response)
+        else:
+            return response.respond_not_found(start_response)
     
     def to_json(self):
             return {
@@ -68,16 +87,6 @@ class BaseDataProvider(object):
                 "name": self.__module__,
                 "icon": self.icon
             }
-
-class FrameDataProvider(object):
-    def __init__(self):
-        from application import DEFAULT_DATA_PROVIDER
-        self.DEFAULT_DATA_PROVIDER=DEFAULT_DATA_PROVIDER
-        
-    def __call__(self,environ,start_response,path):
-        data_provider=path.pop(0)
-        dp=configuration['data_providers'].get(data_provider,self.DEFAULT_DATA_PROVIDER)
-        return dp.render(environ,start_response,path)
 
 class HTMLDataProvider(object):
     def __init__(self):

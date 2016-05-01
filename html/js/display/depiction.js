@@ -1,3 +1,6 @@
+/*
+ * depection.js
+ */
 function Line(x0,y0,x1,y1)
 {	
 	this.editable=true;
@@ -84,11 +87,7 @@ Measure.prototype.measure = function()
 	var dx=this.x0-this.x1
 	var dy=this.y0-this.y1
 	var scale=1
-	if(model)
-	{
-		scale=model.dx/1e3
-	}
-	this.length=Math.sqrt(dx*dx+dy*dy)*scale;
+	this.length=Math.sqrt(dx*dx+dy*dy);
 	this.angle=Math.atan2(Math.abs(dy),Math.abs(dx))
 	this.text=sprintf("%0.2f \u2220 %0.2f\u00B0",this.length,this.angle*180/Math.PI);
 }
@@ -289,6 +288,7 @@ Point.prototype.call = function(display)
 function Background(src)
 {
 	this.editable=false;
+	this.name="background";
 	this.display=true;
 	this.img=new Image()
 	this.img.src=src||"data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAoSURBVBiVY/z//z8DOtiyZQuGIBOGKhxgABWyYHO4j48PI+2tpr5CAKIuCi6gLUyOAAAAAElFTkSuQmCC"
@@ -306,27 +306,21 @@ Background.prototype.call = function(display)
 	display.paper.translate(display.x,display.y)
 }
 
-function Movie(name,timesteps,last,first)
+function Movie()
 {
 	this.editable=true;
 	this.display=true;
 	this.selected=false;
-	this.name=name;
-	this.layers=[];
+	this.name='movie';
+	this.data_fields={}
+	this.z_order=[]
 	this.x=0;
 	this.y=0;
 	this.frame=0;
-	this.timesteps=timesteps
-	this.last=last||timesteps.length-1;
-	this.first=first||0;
+	this.last=0;
+	this.first=0;
 	this.listeners={};
 	this.load_count=0;
-	var self=this;
-	this.load_listener = function(e) { self.loaded(e); };
-	if( first!=null )
-	{
-		this.first=first;
-	}
 }
 
 Movie.prototype.getEditor = function() { return 'movie_editor'; }
@@ -335,10 +329,10 @@ Movie.prototype.getBounds = function()
 {
 	var width=0;
 	var height=0;
-	for( var n=0; n<this.layers.length; n++)
+	for( var n=0; n<this.z_order.length; n++)
 	{
-		width=Math.max(width,this.layers[n].img.width);
-		height=Math.max(height,this.layers[n].img.height);
+		width=Math.max(width,this.data_fields[this.z_order[n]].img.width);
+		height=Math.max(height,this.data_fields[this.z_order[n]].img.height);
 	}
 	return {x: this.x,
             y: this.y,
@@ -346,70 +340,70 @@ Movie.prototype.getBounds = function()
             height: height};
 }
 
-Movie.prototype.getValues = function(x,y,callback)
-{
-	x=Math.floor(x)
-	y=Math.floor(y)
-	if( x<this.x || y<this.y )
-	{
-		for( var i=0; i<this.layers.length; i++)
-		{
-			callback(this.layers[i].name,'-')
-		}
-	}
-	else
-	{
-		for( var i=0; i<this.layers.length; i++)
-		{
-			var layer=this.layers[i];
-			if( x>this.x+layer.img.width ||
-                y>this.y+layer.img.height )
-			{
-				callback(layer.name,'-')
-			}
-			else
-			{
-				var ndx=this.frame+','+y+','+x
-				var self=this;
-				var name=layer.name;
-				jsonCall(layer.path+'frame/'+ndx,function(value,arg) { callback(arg,value); },name);
-			}
-		}
-	}
-}
+//Movie.prototype.getValues = function(x,y,callback)
+//{
+//	x=Math.floor(x)
+//	y=Math.floor(y)
+//	if( x<this.x || y<this.y )
+//	{
+//		for( var i=0; i<this.layers.length; i++)
+//		{
+//			callback(this.layers[i].name,'-')
+//		}
+//	}
+//	else
+//	{
+//		for( var i=0; i<this.layers.length; i++)
+//		{
+//			var layer=this.layers[i];
+//			if( x>this.x+layer.img.width ||
+//                y>this.y+layer.img.height )
+//			{
+//				callback(layer.name,'-')
+//			}
+//			else
+//			{
+//				var ndx=this.frame+','+y+','+x
+//				var self=this;
+//				var name=layer.name;
+//				jsonCall(layer.path+'frame/'+ndx,function(value,arg) { callback(arg,value); },name);
+//			}
+//		}
+//	}
+//}
 
-Movie.prototype.addLayer = function(name,path,args)
+Movie.prototype.addDataField = function(data_field,frame_type)
 {
-	qs=args||'';
-	var layer={name: name, path: path, img: new Image(), opacity: 1.0, qs: qs};
-	layer.img.addEventListener('load',this.load_listener);
-	this.layers.push(layer);
+	if( data_field_name in this.data_fields ) { return; }
+	var df={data_field: data_field, path: data_field.path, prefix: config[frame_type+'_prefix'], img: new Image(), opacity: 1.0};
+	var data_field_name=data_field.path+":"+frame_type
+	this.data_fields[data_field_name]=df
+	this.z_order.push(data_field_name)
+	this.last=Math.max(this.last,data_field.time.length-1)
+	var self=this;
+	df.img.addEventListener('load', function(e) { self.loaded(e); });
 	this.show()
 }
 
-Movie.prototype.removeLayer = function(name)
+Movie.prototype.removeDataField = function(path,frame_type)
 {
-	var layer=-1;
-	for( var i=0; i<this.layers.length && layer==-1; i++ )
-	{
-		if( this.layers[i].name==name ) { layer=i; }	
-	}
-	if(layer!=-1)
-	{
-		this.layers.splice(layer,1);
+	if( data_field_name in this.data_fields ) 
+	{ 
+		var data_field_name=path+":"+frame_type
+		delete this.data_fields[data_field_name]
+		var ndx=this.z_order.indexOf(data_field_name)
+		this.z_order.splice(ndx,1)
 	}
 }
 
-Movie.prototype.reset = function(name,timesteps,last,first)
+Movie.prototype.reset = function()
 {
-	for( var i=0; i<this.layers.length; i++)
+	for( var i=0; i<this.z_order.length; i++)
 	{
-		this.layers[i].img.removeEventListener('load',this.load_listener);
-		delete(this.layers[i].img);
+		delete(this.data_fields[this.z_order[i]].img);
 	}
-	this.layers=[];
+	this.data_fields={}=[];
 	this.frame=0;
-	this.timesteps=timesteps
 	this.last=last||timesteps.length-1;
 	this.first=first||0;
 }
@@ -417,7 +411,7 @@ Movie.prototype.reset = function(name,timesteps,last,first)
 Movie.prototype.loaded = function(e)
 {
 	this.load_count++;
-	if( this.load_count>=this.layers.length )
+	if( this.load_count>=this.z_order.length )
 	{
 		this.load_count=0;
 		this.dispatchEvent('load',e);
@@ -446,18 +440,19 @@ Movie.prototype.dispatchEvent = function(event_name,e)
 
 Movie.prototype.toString = function()
 {
-	return "Movie["+this.name+"]";
+	return "Movie";
 }
 
 Movie.prototype.call = function(display)
 {
-	for( var n=0; n<this.layers.length; n++)
+	for( var i=0; i<this.z_order.length; i++)
 	{
-		display.paper.globalAlpha=this.layers[n].opacity
-		display.paper.drawImage(this.layers[n].img,this.x,this.y);
+		var df=this.data_fields[this.z_order[i]];
+		display.paper.globalAlpha=df.opacity
+		display.paper.drawImage(df.img,this.x,this.y);
 	}
+
 	display.paper.globalAlpha=1.0
-	
 }
 
 Movie.prototype.next = function(n)
@@ -477,8 +472,9 @@ Movie.prototype.previous = function()
 
 Movie.prototype.show = function()
 {
-	for( var n=0; n<this.layers.length; n++)
+	for( var i=0; i<this.z_order.length; i++)
 	{
-		this.layers[n].img.src=this.layers[n].path+this.frame+'.png?'+this.layers[n].qs;
+		var df=this.data_fields[this.z_order[i]];
+		df.img.src=df.prefix+df.path+'.'+df.data_field.renderer+'.'+sprintf("%05d",this.frame)+'.png'
 	}
 }

@@ -1,0 +1,36 @@
+.colormap_selector {
+	width: 286px;
+}
+
+.colormap_dropdown {
+	width: 286px;
+	max-height: 0px;
+	margin-left: auto;
+	margin-right: auto;
+	overflow-y: scroll;
+	transition-property: max-height;
+	transition-duration: .3s;
+}
+
+.colorbar_wrapper {
+	display: block;
+	height: 10px;
+	width: 256px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 1px;
+	margin-bottom: 1px;
+	padding: 0;
+	border: 1px solid rgba(255,255,255,1.0);
+	background-image: url("data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAoSURBVBiVY/z//z8DOtiyZQuGIBOGKhxgABWyYHO4j48PI+2tpr5CAKIuCi6gLUyOAAAAAElFTkSuQmCC");
+}
+
+.colormap_dropdown .colorbar_wrapper:hover {
+	border: 1px solid rgba(0,0,0,1.0);
+}
+
+.colorbar_wrapper img {
+	padding: 0;
+	margin: 0;
+	vertical-align: text-top;
+}

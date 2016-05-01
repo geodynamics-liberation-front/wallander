@@ -15,6 +15,13 @@ def start_response(status,headers):
     for h in headers:
         print("%s: %s"%h)
 
+def call(url):
+    from config import configuration
+    path=[p for p in url.split('/') if p!='']
+    data_provider=path.pop(0) if len(path)>0 else ''
+    dp=configuration['data_providers'].get(data_provider)
+    return dp.call({"REQUEST_URI":url,"PATH_INFO":""},start_response,path)
+
 def get(url):
     response=application({"REQUEST_URI":url,"PATH_INFO":""},start_response)
     out=cStringIO.StringIO()

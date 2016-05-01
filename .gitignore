@@ -5,6 +5,7 @@ __pycache__/
 
 data/*
 log/*
+html/old
 # vim backups
 .*.swp
 # wallander shell history

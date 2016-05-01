@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="css/index.css">
+	<script src="js/ajax.js"></script>
+	<script src="js/wallander_display.js"></script>
+	<script src="js/config.js"></script>
+<script>
+var cs
+function init() 
+{
+	cs=new ColormapSelector(document.getElementById('test_selector'))	
+}
+
+
+function ColormapSelector(input)
+{
+	var self=this
+
+	this.input=input
+	this.height=95
+	this.input.style.display='None'
+	this.selector=document.createElement('div')
+	this.selector.className='colormap_selector'
+	input.parentNode.replaceChild(this.selector,input)
+	this.selector.appendChild(input)
+
+	var span=document.createElement('span')
+	span.className='colorbar_wrapper'
+	this.selector.appendChild(span)
+
+	this.selected_colormap=document.createElement('img')
+	span.appendChild(this.selected_colormap)
+	span.addEventListener('click',function() { self.toggle(); } )
+
+	this.dropdown=document.createElement('div')
+	this.dropdown.className='colormap_dropdown'
+	this.dropdown.style.maxHeight='0px'
+	this.selector.appendChild(this.dropdown)
+
+	jsonCall(config['frame_prefix']+'/_colormaps',function(cm) { self.populate(cm); })
+}
+
+ColormapSelector.prototype.toggle = function()
+{
+	if( this.dropdown.style.maxHeight=='0px' )
+	{
+		this.dropdown.style.maxHeight=this.height+'px'
+	}
+	else
+	{
+		this.dropdown.style.maxHeight='0px'
+	}
+}
+ColormapSelector.prototype.open = function()
+{
+	this.dropdown.style.maxHeight=this.height+'px'
+}
+
+ColormapSelector.prototype.close = function()
+{
+	this.dropdown.style.maxHeight='0px'
+}
+
+ColormapSelector.prototype.select = function(colormap)
+{
+	console.log(this)
+	this.input.value=colormap
+	this.selected_colormap.src=config['frame_prefix']+'_colorbar/'+colormap+'.png'
+	this.close()
+}
+
+ColormapSelector.prototype.populate = function(colormaps)
+{
+	console.log('populate')
+	console.log(this)
+	for( var i=0; i<colormaps.length; i++ )
+	{
+		var span=document.createElement('span')
+		span.className='colorbar_wrapper'
+		var img=document.createElement('img')
+		img.src=config['frame_prefix']+'_colorbar/'+colormaps[i]+'.png'
+		img.alt=colormaps[i]
+		span.appendChild(img)
+		span.addEventListener('click',this.colormap_selector(colormaps[i]))
+		this.dropdown.appendChild(span)
+		var o=document.createElement('option')
+		o.innerHTML=colormaps[i]
+		this.input.appendChild(o)
+	}
+}
+
+ColormapSelector.prototype.colormap_selector = function(c,f)
+{
+	var self=this
+	return  function() { self.select(c); }
+}
+
+</script>
+<style>
+.colormap_selector {
+	width: 286px;
+}
+
+.colormap_dropdown {
+	width: 286px;
+	max-height: 0px;
+	margin-left: auto;
+	margin-right: auto;
+	overflow-y: scroll;
+	transition-property: max-height;
+	transition-duration: .3s;
+}
+
+.colorbar_wrapper {
+	display: block;
+	height: 10px;
+	width: 256px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 1px;
+	margin-bottom: 1px;
+	padding: 0;
+	border: 1px solid rgba(255,255,255,1.0);
+	background-image: url("data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAoSURBVBiVY/z//z8DOtiyZQuGIBOGKhxgABWyYHO4j48PI+2tpr5CAKIuCi6gLUyOAAAAAElFTkSuQmCC");
+}
+
+.colormap_dropdown .colorbar_wrapper:hover {
+	border: 1px solid rgba(0,0,0,1.0);
+}
+
+.colorbar_wrapper img {
+	padding: 0;
+	margin: 0;
+	vertical-align: text-top;
+}
+</style>
+</head>
+<body>
+
+<select id="test_selector">
+</select>
+
+<script>
+init();
+</script>
+</body>
+</html>

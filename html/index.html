@@ -3,13 +3,14 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="css/index.css">
 	<script src="js/ajax.js"></script>
-	<script src="js/display/display.js"></script>
+	<script src="js/wallander_display.js"></script>
+	<script src="js/config.js"></script>
 <script>
 var projector=null;
 var toolbox=null;
 var display=null;
 var movie=null;
-var model=null;
+var data_fields={};
 
 function init()
 {
@@ -20,42 +21,35 @@ function init()
 
 	display.addDepiction(new Background());
 	toolbox=new ToolBox(display);
-	projector=new Projector(display);
-	// load the models
-	jsonCall('/models',init_models);
-
-	movie=new Movie("",[[0,0]]);
-	projector.addMovie(movie);
+	movie=new Movie();
+	projector=new Projector(display,movie);
 	setTimeout( function(e) {display.resize();}, 200);
 }
 
-function init_models(models)
+function add_data_field(data_field)
 {
-	models.sort();
-	var s=document.getElementById('models');
-	s.addEventListener('change',select_model);
-	for( var i=0; i<models.length; i++)
+	console.log('Adding data field: ')
+	if( !('xy' in data_field) )
 	{
-		var o=document.createElement('option');
-		o.innerHTML=(models[i]);
-		s.appendChild(o);
+		if( data_field.dimensions==1 )
+		{
+			data_field['x']=function(x) { return this.x0+this.dx*x }
+		}
+		else if ( data_field.dimensions==2 )
+		{
+			data_field['xy']=function(x,y) { return [this.x0+this.dx*x,this.y0+this.dy*y] }
+		}
 	}
-	select_model(models[0])
+	console.log(data_field)
+	data_fields[data_field.path]=data_field
+	movie.addDataField(data_field,'frame')
 }
 
-function select_model(model)
+function del_data_field(data_field)
 {
-	console.log("select_model")
-	var model=document.getElementById('models').value
-	jsonCall('/models'+model+'/',function(m) { set_model(m); });
-}
-
-function set_model(m)
-{
-	console.log("set_model")
-	model=m;
-	set_fields(m)
-	jsonCall('/models'+model.name+'/timesteps',function(timesteps) { set_movie(timesteps); });
+	console.log('Deleting data field: ')
+	console.log(data_field)
+	delete data_fields[data_field]
 }
 
 function set_fields(model)
@@ -95,7 +89,6 @@ function set_fields(model)
 		var d=document.createElement('td');	
 		d.appendChild(document.createTextNode('-'));
 		r.appendChild(d);
-
 		// Max value
 		var d=document.createElement('td');	
 		var max=document.createElement('input');
@@ -140,16 +133,6 @@ function toggle_field(e)
 	display.redraw();
 }
 
-function add_layer(name)
-{
-	movie.addLayer(name,'/models'+model+'/eta/','vmin=1e19&vmax=1e24&under_color=2DD6D6&under_alpha=0.2');
-}
-//                 colormap=plt.get_cmap('jet'),
-//                 over_color=None, over_alpha=1.0,
-//                 under_color=None, under_alpha=1.0,
-//                 bad_color=None, bad_alpha=1.0,
-//                 gamma=1.0):
-
 
 function toggle_toolset(e)
 {
@@ -185,44 +168,58 @@ function hide_dialog()
 
 
 </script>
+<style>
+/* Depcition display */
+.depiction_display  .data_field_value {
+	display: inline-block;
+	width: 5em;
+	text-align: right;
+}
+
+.depiction_display  .depiction_name.closed::before {
+	content: "\25BE\00A0"; /* Triangle pointing down */
+}
+
+.depiction_display  .depiction_name.open::before {
+	content: "\25B4\00A0"; /* Triangle pointing up */
+}
+</style>
 </head>
 <body>
 <div id="display"></div>
 <div id="status">
-<span id="fps_status"></span>
-<span id="frame_status"></span>
-<span id="time_status"></span>
-<span id="timestep_status"></span>
-<span id="xy_status"></span>
+	<span id="fps_status"></span>
+	<span id="frame_status"></span>
+	<span id="time_status"></span>
+	<span id="timestep_status"></span>
+	<span id="xy_status"></span>
+	<span id="xy_unit_status"></span>
 </div>
 <div>
-<div id="depictions"></div>
-<div id="depiction_edit">
-
-<div id="movie_editor">
-<form name='movie_form'>
-<div><span class="label">Model </span><select id="models" name="models"></select></div>
-<div>
-<span class="label">Frames </span><span class="value" id="movie_frames"></span> / <span class="value" id="movie_time"></span>
-<span id="movie_par"></span>
-</div>
-<hr>
-<span class="label">Fields:</span>
-<table id="movie_fields"></table>
-</form>
+<div class="depiction_display"></div>
+		<div id="data_field_display">
+		</div>
+		<div id="depiction_object_display">
+		</div>
 </div>
 
-<div id="line_editor">Line Editor</div>
-<div id="point_editor">Point Editor</div>
-</div>
+<div id="display_templates" class="depiction_display">
+	<div id="data_field_template">
+		<div>
+			<span class="depiction_name label closed">name</span>
+			<span class="data_field_value">value</span></td>
+		</div>
+	</div>
+	</div>
+	</div>
 </div>
 
 <div id="dialog">
-	<iframe src="open_dataset.html"></iframe>
+	<iframe src="open_dataset"></iframe>
 </div>
 
-</body>
 <script>
 init();
 </script>
+</body>
 </html>

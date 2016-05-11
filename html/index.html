@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="css/index.css">
-	<script src="js/config.js"></script>
-	<script src="js/dialog.js"></script>
-	<script src="js/ajax.js"></script>
-	<script src="js/units.js"></script>
-	<script src="js/wallander_display.js"></script>
-	<script src="js/widgets.js"></script>
+	<link rel="stylesheet" type="text/css" href="/css/index.css">
+	<link rel="stylesheet" type="text/css" href="/css/widgets.css">
+	<script src="/js/config.js"></script>
+	<script src="/js/dialog.js"></script>
+	<script src="/js/ajax.js"></script>
+	<script src="/js/units.js"></script>
+	<script src="/js/wallander_display.js"></script>
+	<script src="/js/widgets.js"></script>
 <script>
-var depiction_mgr=null;
-var data_field_mgr=null;
-var projector=null;
+"use strict";
 var toolbox=null;
 var display=null;
 var movie=null;
@@ -20,47 +19,56 @@ var data_fields={};
 function init()
 {
 	console.log("init");
-	depiction_mgr=new DepictionManager(document.getElementById("depiction_object_display"));
-	data_field_mgr=new DataFieldManager(document.getElementById("data_field_display"))
-	display=new Display(document.getElementById("display"),depiction_mgr,data_field_mgr);
+	// Create the display object
+	display=new Display(
+		document.getElementById("display"),
+		document.getElementById("depiction_object_display"),
+		document.getElementById("data_field_display"),
+		document.getElementById('status'))
+	// Add the background depiction
 	display.addDepiction(new Background());
-	toolbox=new ToolBox(display);
-	movie=new Movie();
-	projector=new Projector(display,movie);
-	setTimeout( function(e) {display.resize();}, 200);
+	setTimeout( function(e) {display.resize();}, 10)
+
+	// Show the body of the document
+	document.body.style.opacity="1"
 }
+
 
 </script>
 <style>
+
+body {
+	opacity: 0;
+	transition-delay: .5s;
+	transition-property: opacity;
+	transition-duration: .1s;
+}
+
+#status input {
+	margin-left: 2px;
+	margin-right: 2px;
+}
+#status select {
+	margin-left: 2px;
+	margin-right: 2px;
+}
 /* templates */
 .templates { display: none; }
+
 /* Depcition display */
-.depiction_display  .data_field_value {
+.data_field_value {
 	display: inline-block;
 	width: 6em;
 	text-align: right;
 }
 
-.depiction_display  .depiction_name.closed::before {
-	content: "\25BE\00A0"; /* Triangle pointing down */
-}
-
-.depiction_display  .depiction_name.open::before {
-	content: "\25B4\00A0"; /* Triangle pointing up */
-}
 </style>
 </head>
 <body>
 <div id="display"></div>
 <div id="status">
-	<span id="fps_status"></span>
-	<span id="frame_status"></span>
-	<span id="time_status"></span>
-	<span id="timestep_status"></span>
-	<span id="xy_status"></span>
-	<span id="xy_unit_status"></span>
 </div>
-<div>
+
 <div id="depictions" class="depiction_display"></div>
 		<div id="data_field_display"></div>
 		<div id="depiction_object_display"></div>
@@ -68,10 +76,15 @@ function init()
 
 <div class="templates depiction_display">
 	<div id="data_field_template">
-		<div class="depiction_status">
-			<span class="depiction_name label closed">name</span>
-			<span class="data_field_value">value</span>
-			<div class="depection_editor"></div>
+		<div class="data_field_bar">
+<span class="data_field_name label">name</span>
+<span class="data_field_value">value</span>
+		</div>
+		<div class="data_field_details">
+This is the data field details
+<p>unit/format: <select class="data_field_colormap"></select></p>
+<p>format: <select class="data_field_colormap"></select></p>
+<p>colormap: <select class="data_field_colormap"></select></p>
 		</div>
 	</div>
 	</div>

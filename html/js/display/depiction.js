@@ -347,7 +347,7 @@ Movie.prototype.addDataField = function(data_field,frame_type)
 	var data_field_name=data_field.path+":"+frame_type
 	this.data_fields[data_field_name]=df
 	this.z_order.push(data_field_name)
-	this.last=Math.max(this.last,data_field.time.length-1)
+	this.last=Math.max(this.last,data_field._time.length-1)
 	var self=this;
 	df.img.addEventListener('load', function(e) { self.loaded(e); });
 	this.show()

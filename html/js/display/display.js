@@ -1,169 +1,13 @@
 /*
  *  display.js
- *  Utility functions and main Display object
+ *  Main Display object
  */
-var script_src=document.currentScript.src;
-var path=script_src.substring(0,script_src.lastIndexOf('/')+1)+'display/'
 
-function toggle_class(node,classname1,classname2)
-{
-	/* if classname1 exists */
-	if( node.className.search( re=new RegExp('\\b'+classname1+'\\b','g')) >-1 )
-	{
-		node.className=node.className.replace( re,'')
-		node.className=node.className+' '+classname2;
-		node.className=node.className.replace( /\s{2,}/g,' ')
-	}
-	/* if classname 2 exists */
-	else if( node.className.search( re=new RegExp('\\b'+classname2+'\\b','g')) >-1 )
-	{
-		node.className=node.className.replace( re,'')
-		node.className=node.className+' '+classname1;
-		node.className=node.className.replace( /\s{2,}/g,' ')
-	}
-}
-
-function add_class(node,classname)
-{
-	var cn=node.className;
-	if( cn.search( new RegExp('\\b'+classname+'\\b')) == -1 )
-	{
-		node.className=cn+' '+classname;
-	}
-}
-
-function remove_class(node,classname)
-{
-	node.className=node.className.replace( new RegExp('\\b'+classname+'\\b','g'),'')
-	node.className=node.className.replace( /\s{2,}/g,' ')
-}
-
-function has_class(node,classname)
-{
-	return node.className.search( new RegExp('\\b'+classname+'\\b')) == -1 
-}
-
-function add_stylesheet(stylesheet)
-{
-	var style=document.createElement('link');
-	style.rel="stylesheet";
-	style.href=path+"css/"+stylesheet;
-	document.head.appendChild(style);
-}
-
-function get_img_url(img)
-{
-	return path+"img/"+img;
-}
-
-/*
- * The data field manager
- */
-function DataFieldManager(elem)
-{
-	this.elem=elem
-	this.reference_data_field=null;
-	this.data_fields={}
-}
-
-DataFieldManager.prototype.add_data_field = function(data_field)
-{
-	console.log('Adding data field: ')
-	console.log(data_field)
-	if( !('xy' in data_field) )
-	{
-		if( data_field.dimensions==1 )
-		{
-			data_field['x']=function(x) { return this.x0+this.dx*x }
-		}
-		else if ( data_field.dimensions==2 )
-		{
-			data_field['xy']=function(x,y) { return [this.x0+this.dx*x,this.y0+this.dy*y] }
-		}
-	}
-	if( !this.reference_data_field ) { this.reference_data_field=data_field }
-	this.data_fields[data_field.path]=data_field
-	movie.addDataField(data_field,'frame')
-
-	var display=document.getElementById('data_field_template').cloneNode(true)
-	display.id=data_field.path
-	this.elem.appendChild(display)
-}
-
-DataFieldManager.prototype.del_data_field = function(data_field)
-{
-	console.log('Deleting data field: ')
-	console.log(data_field)
-	delete this.data_fields[data_field]
-}
-
-/*
- * The depiction manager
- */
-function DepictionManager(elem)
-{
-	this.elem=elem;
-	this.display=null;
-	this.depictions=[];
-}
-
-DepictionManager.prototype.addDepiction = function (obj,n)
-{
-	this.depictions.splice(n!=null?n:this.depictions.length,0,obj);
-	if( obj.editable )
-	{
-//		obj.div=document.createElement('div');
-//		obj.div.depiction=obj;
-//		obj.div.className='depiction';
-//		var self=this;
-//		obj.div.addEventListener('click',function(e) {self.selectDepiction(e.target.depiction)}); 
-//		obj.div.innerHTML=obj;
-//		this.elem.appendChild(obj.div);
-//		this.selectDepiction(obj);
-	}
-}
-
-DepictionManager.prototype.removeDepiction = function (obj)
-{
-	var ndx;
-	while( (ndx=this.depictions.indexOf(obj)) != -1 ) 
-	{ 
-		var depiction=this.depictions[ndx];
-		this.depictions.splice(ndx,1); 
-		if( depiction.div )
-		{
-			depiction.div.parentElement.removeChild(depiction.div);
-		}
-	}
-}
-
-DepictionManager.prototype.selectDepiction = function(obj)
-{
-	for( var i=0; i<this.depictions.length; i++)
-	{
-		var d=this.depictions[i];
-		if( d.div )
-		{
-			if( obj===d )
-			{
-				add_class(d.div,'selected');
-				document.getElementById(d.getEditor()).style.display='block';
-				d.selected=true;
-			}
-			else
-			{
-				remove_class(d.div,'selected');
-				d.selected=false;
-			}
-		}
-	}	
-	this.display.redraw();
-}
 
 /*
  *  The display object
  */
-function Display(elem,depiction_mgr,data_field_mgr)
+function Display(elem,depiction_elem,data_field_elem,status_elem)
 {
 	var self=this
 
@@ -179,12 +23,33 @@ function Display(elem,depiction_mgr,data_field_mgr)
 	Object.defineProperty(this,'reference_data_field',{ get: function() { return self.data_field_mgr.reference_data_field } } )
 	this.depiction_mgr=depiction_mgr;
 	this.depiction_mgr.display=this;
+	this.status_mgr=status_mgr
+	this.status_mgr.display=this
 	this.listeners={};
 
-	// The Current tool
-	this.tool=null;
 	// Add a stylesheet
 	add_stylesheet("display.css");
+
+	// create the depiction manager
+	this.depiction_mgr=new DepictionManager(depiction_elem,this)
+
+	// create the data field mananger
+	this.data_field_mgr=new DataFieldManager(data_field_elem,this)
+
+	// create the status manager
+	this.status_mgr=new StatusManager(status_elem,this)
+	this.status_mgr.add_status('fps')
+	this.status_mgr.add_status('frame')
+	this.status_mgr.add_status('time')
+	this.status_mgr.add_status('xy')
+	this.status_mgr.add_status('dimensional_xy','dimensional xy','xy')
+
+	// create the projector
+	this.projector=new Projector(this)
+
+	// create the toolbox
+	this.tool=null;
+	this.toolbox=new ToolBox(this);
 
 	// Make the canvas
 	this.canvas=document.createElement("canvas");
@@ -232,40 +97,32 @@ Display.prototype.toString = function()
 	return "Display[canvas#"+this.canvas.id+"]";
 }
 
-Display.prototype.setStatus = function(name,value,formatter)
-{ 
-	var e=document.getElementById(name+'_status');
-	if (formatter!=undefined)
-	{
-		formatter(e,value);
-	}
-	else
-	{
-		e.innerHTML=value;
-	}
-}
-
 Display.prototype.updateXY = function(e)
 {
 	var self=this
+	// Update the XY locations
 	var xy=this.xy(e);
 	xy.x=Math.floor(xy.x)
 	xy.y=Math.floor(xy.y)
 	var fmt="%s"
-	var df_x="-"
-	var df_y="-"
+	var dfxy={x:'-',y:'-'}
 	var unit=''
 	if( this.data_field_mgr.reference_data_field )
 	{
 		var df=this.data_field_mgr.reference_data_field
+		dfxy=df.xy(xy.x,xy.y)
 		fmt=df.dimension_format
 		unit=df.dimension_unit
-		df_x=df.x0+xy.x*df.dx
-		df_y=df.y0+xy.y*df.dy
 	}
 	
-	var status_string=sprintf('<span class="label">XY:</span>(%d,%d) / ('+fmt+' <span class="label">%s</span>,'+fmt+' <span class="label">%s</span>)',xy.x,xy.y,df_x,unit,df_y,unit)
-	this.setStatus('xy',status_string)
+	this.status_mgr.set_status('xy','('+xy.x+','+xy.y+')')
+
+	var status_string=sprintf('('+fmt+' <span class="label">%s</span>,'+fmt+' <span class="label">%s</span>)',dfxy.x,unit,dfxy.y,unit)
+	this.status_mgr.set_status('dimensional_xy',status_string)
+	if( this.projector && !this.projector.playing )
+	{
+		this.data_field_mgr.updateXY(xy)
+	}
 }
 
 

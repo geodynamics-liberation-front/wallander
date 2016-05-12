@@ -150,13 +150,14 @@ class H5DataField(object):
                       attribute_group_name='/',
                       unit_attribute_name='unit',dimension_unit_attribute_name='dimension_unit',
                       time_unit_attribute_name='time_unit',
+                      time_format_attribute_name='time_format',
                       dimension_format_attribute_name='dimension_format',
                       format_attribute_name='format',data_type_attribute_name='data_type',
                       x0_attribute_name='x0',dx_attribute_name='dx',y0_attribute_name='y0',dy_attribute_name='dy',
                       renderer_attribute_name='renderer',
                       time_dataset=None,
                       unit=None, dimension_unit=None, time_unit=None,
-                      dimension_format=None,
+                      dimension_format=None,time_format=None,
                       format=None,
                       data_type=None,
                       x0=None, dx=None, y0=None, dy=None,
@@ -179,6 +180,7 @@ class H5DataField(object):
         self.dimension_unit=dimension_unit or attributes[dimension_unit_attribute_name]
         self.dimension_format=dimension_format or attributes[dimension_format_attribute_name]
         self.time_unit=time_unit or attributes[time_unit_attribute_name]
+        self.time_format=time_format or attributes[time_format_attribute_name]
         self.format=format or attributes[format_attribute_name]
         self.data_type=data_type or attributes[data_type_attribute_name]
         self.x0=x0 or attributes[x0_attribute_name]
@@ -248,7 +250,8 @@ class H5DataField(object):
             "dimension_unit": self.dimension_unit,
             "dimension_format": self.dimension_format,
             "time": self.time,
-            "time_unit=": self.time_unit,
+            "time_unit": self.time_unit,
+            "time_format": self.time_format,
             "nx": shape[1],
             "dx": self.dx,
             "x0": self.x0

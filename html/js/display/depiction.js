@@ -397,13 +397,13 @@ Movie.prototype.addEventListener = function(type,listener)
 
 Movie.prototype.dispatchEvent = function(event_name,e)
 {
-		if(event_name in this.listeners)
+	if(event_name in this.listeners)
+	{
+		for( var n=0; n<this.listeners[event_name].length; n++)
 		{
-			for( var n=0; n<this.listeners[event_name].length; n++)
-			{
-				this.listeners[event_name][n](e);
-			}
+			this.listeners[event_name][n](e);
 		}
+	}
 }
 
 Movie.prototype.toString = function()

@@ -10,7 +10,8 @@ function DepictionManager(elem,display)
 
 DepictionManager.prototype.addDepiction = function (obj,n)
 {
-	this.depictions.splice(n!=null?n:this.depictions.length,0,obj);
+	n=n==null?this.depictions.length:n
+	this.depictions.splice(n,0,obj);
 	if( obj.editable )
 	{
 //		obj.div=document.createElement('div');

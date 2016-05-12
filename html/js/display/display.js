@@ -18,14 +18,6 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.y=0;
 	this.zoom_level=1.0;
 	this.smooth=false;
-	this.data_field_mgr=data_field_mgr
-	this.data_field_mgr.display=this
-	Object.defineProperty(this,'reference_data_field',{ get: function() { return self.data_field_mgr.reference_data_field } } )
-	this.depiction_mgr=depiction_mgr;
-	this.depiction_mgr.display=this;
-	this.status_mgr=status_mgr
-	this.status_mgr.display=this
-	this.listeners={};
 
 	// Add a stylesheet
 	add_stylesheet("display.css");
@@ -35,6 +27,7 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 
 	// create the data field mananger
 	this.data_field_mgr=new DataFieldManager(data_field_elem,this)
+	Object.defineProperty(this,'reference_data_field',{ get: function() { return self.data_field_mgr.reference_data_field } } )
 
 	// create the status manager
 	this.status_mgr=new StatusManager(status_elem,this)
@@ -43,13 +36,6 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.status_mgr.add_status('time')
 	this.status_mgr.add_status('xy')
 	this.status_mgr.add_status('dimensional_xy','dimensional xy','xy')
-
-	// create the projector
-	this.projector=new Projector(this)
-
-	// create the toolbox
-	this.tool=null;
-	this.toolbox=new ToolBox(this);
 
 	// Make the canvas
 	this.canvas=document.createElement("canvas");
@@ -74,6 +60,14 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.model_info=document.createElement("div");
 	add_class(this.info,"glf_info");
 	this.info.appendChild(this.model_info);
+
+	// create the projector
+	this.projector=new Projector(this)
+
+	// create the toolbox
+	this.tool=null;
+	this.toolbox=new ToolBox(this);
+
 
 	// Register some events
 	var self=this;
@@ -121,10 +115,15 @@ Display.prototype.updateXY = function(e)
 	this.status_mgr.set_status('dimensional_xy',status_string)
 	if( this.projector && !this.projector.playing )
 	{
-		this.data_field_mgr.updateXY(xy)
+		this.data_field_mgr.updateXY(this.projector.movie.frame,xy.x,xy.y)
 	}
 }
 
+
+Display.prototype.addDataField = function (df)
+{
+	this.data_field_mgr.addDataField(df)
+}
 
 Display.prototype.addDepiction = function (obj,n)
 {

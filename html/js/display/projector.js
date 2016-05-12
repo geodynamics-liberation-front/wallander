@@ -16,13 +16,13 @@ function Projector(display)
 	this.display=display;
 	// some listeners
 
-	this.movie=new Movie()
-	movie.projector=this
 	var self=this;
-	movie.addEventListener('load',function(e) { self.loaded(e); });
-	movie.addEventListener('stop',function(e) { self.stopped(e); });
-	this.display.addDepiction( movie );
-	movie.show();
+	this.movie=new Movie()
+	this.movie.projector=this
+	this.movie.addEventListener('load',function(e) { self.loaded(e); });
+	this.movie.addEventListener('stop',function(e) { self.stopped(e); });
+	this.display.addDepiction( this.movie );
+	this.movie.show();
 	this.loop=false;
 	this.fps=10;
 	this.frameTime=0

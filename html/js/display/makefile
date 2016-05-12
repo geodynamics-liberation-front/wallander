@@ -1,5 +1,5 @@
 DISPLAY=../wallander_display.js
-SCRIPTS=util.js sprintf.js display.js projector.js depiction.js toolbox.js 
+SCRIPTS=data_field_manager.js depiction.js depiction_manager.js display.js projector.js sprintf.js state.js status_manager.js toolbox.js util.js
 
 ${DISPLAY} : ${SCRIPTS}
 	touch ${DISPLAY}

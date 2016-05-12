@@ -39,14 +39,14 @@ function open(l)
 
 function reset_toolbox()
 {
-	parent.toolbox.toolClick({target: parent.toolbox.default_tool.html_img})
+	parent.display.toolbox.toolClick({target: parent.display.toolbox.default_tool.html_img})
 }
 
 function select(resp,loc)
 {
 	if(resp.type=='data_field')
 	{
-		parent.data_field_mgr.add_data_field(resp)
+		parent.display.addDataField(resp)
 		dialog_close()
 	} 
 	else

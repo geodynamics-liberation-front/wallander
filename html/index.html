@@ -11,10 +11,7 @@
 	<script src="/js/widgets.js"></script>
 <script>
 "use strict";
-var toolbox=null;
 var display=null;
-var movie=null;
-var data_fields={};
 
 function init()
 {
@@ -26,7 +23,8 @@ function init()
 		document.getElementById("data_field_display"),
 		document.getElementById('status'))
 	// Add the background depiction
-	display.addDepiction(new Background());
+	display.addDepiction(new Background(),0);
+	// Resize the screen
 	setTimeout( function(e) {display.resize();}, 10)
 
 	// Show the body of the document

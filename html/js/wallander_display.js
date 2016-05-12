@@ -1,377 +1,21 @@
-// Whole-script strict mode syntax
-"use strict";
-var script_src=document.currentScript.src;
-var path=script_src.substring(0,script_src.lastIndexOf('/')+1)+'display/'
-
-function toggle_class(node,classname1,classname2)
-{
-	/* if classname1 exists */
-	if( node.className.search( re=new RegExp('\\b'+classname1+'\\b','g')) >-1 )
-	{
-		node.className=node.className.replace( re,'')
-		node.className=node.className+' '+classname2;
-		node.className=node.className.replace( /\s{2,}/g,' ')
-	}
-	/* if classname 2 exists */
-	else if( node.className.search( re=new RegExp('\\b'+classname2+'\\b','g')) >-1 )
-	{
-		node.className=node.className.replace( re,'')
-		node.className=node.className+' '+classname1;
-		node.className=node.className.replace( /\s{2,}/g,' ')
-	}
-}
-
-function add_class(node,classname)
-{
-	var cn=node.className;
-	if( cn.search( new RegExp('\\b'+classname+'\\b')) == -1 )
-	{
-		node.className=cn+' '+classname;
-	}
-}
-
-function remove_class(node,classname)
-{
-	node.className=node.className.replace( new RegExp('\\b'+classname+'\\b','g'),'')
-	node.className=node.className.replace( /\s{2,}/g,' ')
-}
-
-function has_class(node,classname)
-{
-	return node.className.search( new RegExp('\\b'+classname+'\\b')) > -1 
-}
-
-function add_stylesheet(stylesheet)
-{
-	var style=document.createElement('link');
-	style.rel="stylesheet";
-	style.href=path+"css/"+stylesheet;
-	document.head.appendChild(style);
-}
-
-function get_img_url(img)
-{
-	return path+"img/"+img;
-}
-
-function EventBroadcaster()
-{
-    this.listeners={}
-}
-
-EventBroadcaster.prototype.addEventListener = function(type,listener)
-{
-    if( !(type in this.listeners))
-    {   
-        this.listeners[type]=[];
-    }   
-    this.listeners[type].push(listener);
-}
-
-EventBroadcaster.prototype.dispatchEvent = function(event_name,e)
-{
-    if(event_name in this.listeners)
-    {   
-        for( var n=0; n<this.listeners[event_name].length; n++)
-        {
-            this.listeners[event_name][n].apply(this,[e]);
-        }
-    }   
-}
-
-/*
- * sprintf.js
- */
-;
-(function(win) {
-    var re = {
-        not_string: /[^s]/,
-        number: /[def]/,
-        text: /^[^\x25]+/,
-        modulo: /^\x25{2}/,
-/*        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/, */
-        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(?:(_[., ]?))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/,
-        key: /^([a-z_][a-z_\d]*)/i,
-        key_access: /^\.([a-z_][a-z_\d]*)/i,
-        index_access: /^\[(\d+)\]/,
-        sign: /^[\+\-]/
-    }
-
-    function sprintf() {
-        var key = arguments[0], cache = sprintf.cache
-        if (!(cache[key] && cache.hasOwnProperty(key))) {
-            cache[key] = sprintf.parse(key)
-        }
-        return sprintf.format.call(null, cache[key], arguments)
-    }
-
-    sprintf.format = function(parse_tree, argv) {
-        var cursor = 1, tree_length = parse_tree.length, node_type = "", arg, output = [], i, k, match, pad, pad_character, pad_length, is_positive = true, sign = ""
-        for (i = 0; i < tree_length; i++) {
-            node_type = get_type(parse_tree[i])
-            if (node_type === "string") {
-                output[output.length] = parse_tree[i]
-            }
-            else if (node_type === "array") {
-                match = parse_tree[i] // convenience purposes only
-                if (match[2]) { // keyword argument
-                    arg = argv[cursor]
-                    for (k = 0; k < match[2].length; k++) {
-                        if (!arg.hasOwnProperty(match[2][k])) {
-                            throw new Error(sprintf("[sprintf] property '%s' does not exist", match[2][k]))
-                        }
-                        arg = arg[match[2][k]]
-                    }
-                }
-                else if (match[1]) { // positional argument (explicit)
-                    arg = argv[match[1]]
-                }
-                else { // positional argument (implicit)
-                    arg = argv[cursor++]
-                }
-
-                if (get_type(arg) == "function") {
-                    arg = arg()
-                }
-
-                if (re.not_string.test(match[9]) && (get_type(arg) != "number" && isNaN(arg))) {
-                    throw new TypeError(sprintf("[sprintf] expecting number but found %s", get_type(arg)))
-                }
-
-				sign=""
-				is_positive = re.number.test(match[9]) ? arg >= 0 : true
-
-                switch (match[9]) {
-                    case "b":
-                        arg = arg.toString(2)
-                    break
-                    case "c":
-                        arg = String.fromCharCode(arg)
-                    break
-                    case "d":
-                        arg = parseInt(arg, 10).toString()
-                    break
-                    case "e":
-                        arg = match[8] ? arg.toExponential(match[8]) : arg.toExponential()
-                    break
-                    case "f":
-                        arg = match[8] ? parseFloat(arg).toFixed(match[8]) : parseFloat(arg).toString()
-                    break
-                    case "o":
-                        arg = arg.toString(8)
-                    break
-                    case "s":
-                        arg = ((arg = String(arg)) && match[8] ? arg.substring(0, match[8]) : arg)
-                    break
-                    case "u":
-                        arg = arg >>> 0
-                    break
-                    case "x":
-                        arg = arg.toString(16)
-                    break
-                    case "X":
-                        arg = arg.toString(16).toUpperCase()
-                    break
-                }
-				if( match[3] && (match[9]=='d' || match[9]=='f')) {
-					seperator = match[3].length>1 ? match[3][1] : '\u2006'
-					var dp = arg.indexOf('.')
-					dp = dp<0 ? arg.length : dp
-					// Seperate the the numbers to the left of the decimal point
-					for (n=dp-3; n>0; n-=3)
-					{
-						arg=arg.substring(0,n)+seperator+arg.substring(n)	
-					}
-				}
-                if (!is_positive || (re.number.test(match[9]) && match[4])) {
-                    sign = is_positive ? "+" : "-"
-                    arg = arg.toString().replace(re.sign, "")
-                }
-                pad_character = match[5] ? match[5] == "0" ? "0" : match[5].charAt(1) : " "
-                pad_length = match[7] - (sign + arg).length
-                pad = match[7] ? str_repeat(pad_character, pad_length) : ""
-                output[output.length] = match[6] ? sign + arg + pad : (pad_character == 0 ? sign + pad + arg : pad + sign + arg)
-            }
-        }
-        return output.join("")
-    }
-
-    sprintf.cache = {}
-
-    sprintf.parse = function(fmt) {
-        var _fmt = fmt, match = [], parse_tree = [], arg_names = 0
-        while (_fmt) {
-            if ((match = re.text.exec(_fmt)) !== null) {
-                parse_tree[parse_tree.length] = match[0]
-            }
-            else if ((match = re.modulo.exec(_fmt)) !== null) {
-                parse_tree[parse_tree.length] = "%"
-            }
-            else if ((match = re.placeholder.exec(_fmt)) !== null) {
-                if (match[2]) {
-                    arg_names |= 1
-                    var field_list = [], replacement_field = match[2], field_match = []
-                    if ((field_match = re.key.exec(replacement_field)) !== null) {
-                        field_list[field_list.length] = field_match[1]
-                        while ((replacement_field = replacement_field.substring(field_match[0].length)) !== "") {
-                            if ((field_match = re.key_access.exec(replacement_field)) !== null) {
-                                field_list[field_list.length] = field_match[1]
-                            }
-                            else if ((field_match = re.index_access.exec(replacement_field)) !== null) {
-                                field_list[field_list.length] = field_match[1]
-                            }
-                            else {
-                                throw new SyntaxError("[sprintf] failed to parse named argument key")
-                            }
-                        }
-                    }
-                    else {
-                        throw new SyntaxError("[sprintf] failed to parse named argument key")
-                    }
-                    match[2] = field_list
-                }
-                else {
-                    arg_names |= 2
-                }
-                if (arg_names === 3) {
-                    throw new Error("[sprintf] mixing positional and named placeholders is not (yet) supported")
-                }
-                parse_tree[parse_tree.length] = match
-            }
-            else {
-                throw new SyntaxError("[sprintf] unexpected placeholder")
-            }
-            _fmt = _fmt.substring(match[0].length)
-        }
-        return parse_tree
-    }
-
-    var vsprintf = function(fmt, argv, _argv) {
-        _argv = (argv || []).slice(0)
-        _argv.splice(0, 0, fmt)
-        return sprintf.apply(null, _argv)
-    }
-
-    /**
-     * helpers
-     */
-    function get_type(variable) {
-        return Object.prototype.toString.call(variable).slice(8, -1).toLowerCase()
-    }
-
-    function str_repeat(input, multiplier) {
-        return Array(multiplier + 1).join(input)
-    }
-
-    /**
-     * export to either browser or node.js
-     */
-    if (typeof exports !== "undefined") {
-        exports.sprintf = sprintf
-        exports.vsprintf = vsprintf
-    }
-    else {
-        win.sprintf = sprintf
-        win.vsprintf = vsprintf
-
-        if (typeof define === "function" && define.amd) {
-            define(function() {
-                return {
-                    sprintf: sprintf,
-                    vsprintf: vsprintf
-                }
-            })
-        }
-    }
-})(typeof window === "undefined" ? this : window)
-/*
- *  display.js
- *  Utility functions and main Display object
- */
-
-/* 
- * The status manager 
- */
-function StatusManager(elem)
-{
-	this.elem=elem
-	this.status_bar=document.createElement('div')
-	this.status_editor=document.createElement('div')
-	this.elem.appendChild(this.status_bar)
-	this.elem.appendChild(this.status_editor)
-	this.dropdown=new Dropdown(this.status_bar,this.status_editor)
-	this.status_names=[]
-	this.statuses={}
-}
-
-StatusManager.prototype.set_visibility = function(name,visible)
-{
-	if( name in this.statuses )
-	{
-		this.statuses[name].style.display=visible?'':'none'
-	}
-}
-StatusManager.prototype.add_status = function(name,display_name,short_name)
-{
-	var self=this
-	this.status_names.push(name)
-	var status=document.createElement('span')
-	status.status_name=name
-	status.status_display_name=display_name
-	status.status_short_name=short_name
-	var label=document.createElement('span')
-	label.className='label'
-	label.innerHTML=(short_name || display_name || name) + ' : '
-	var value=document.createElement('span')
-	value.className='value'
-	status.appendChild(label)
-	status.appendChild(value)
-	status.value_span=value
-	status.label_span=label
-	this.statuses[name]=status
-	this.status_bar.appendChild(document.createTextNode('\n'))
-	this.status_bar.appendChild(status)
-
-	var status_editor=document.createElement('div')
-	var editor_label=document.createElement('label')
-	status.status_editor=status_editor
-	var cb=document.createElement('input')
-	cb.type='checkbox'
-	cb.checked=true
-	cb.addEventListener('change',function() { self.set_visibility(name,cb.checked) } )
-	editor_label.appendChild(cb)
-	editor_label.appendChild(document.createTextNode(display_name||name))
-	status_editor.appendChild(editor_label)
-	this.status_editor.appendChild(status_editor)
-}
-
-StatusManager.prototype.set_status = function(name,value)
-{
-	if( name in this.statuses )
-	{
-		this.statuses[name].value_span.innerHTML=value
-	}
-}
-
-
 /*
  * The data field manager
  */
-function DataFieldManager(elem)
+function DataFieldManager(elem,display)
 {
 	this.elem=elem
+	this.display=display
 	this.reference_data_field=null;
 	this.data_field_paths=[]
 	this.data_fields={}
 }
 
-DataFieldManager.prototype.add_data_field = function(data_field)
+DataFieldManager.prototype.addDataField = function(data_field)
 {
 	console.log('Adding data field: ')
 	console.log(data_field.path)
 
-	data_field._unit=data_field._unit
-	data_field.value=converted_value
+	data_field._unit=data_field.unit
 
 	data_field._dimension_unit=data_field.dimension_unit
 	data_field.xy=converted_xy
@@ -379,44 +23,63 @@ DataFieldManager.prototype.add_data_field = function(data_field)
 	data_field._time=data_field.time
 	data_field._time_unit=data_field.time_unit
 	data_field.time=converted_time
+	data_field.frame_count=data_field._time.length
 	data_field.visible=true
 	
-	this.data_field_paths.push(data_field)
+	this.data_field_paths.push(data_field.path)
 	this.data_fields[data_field.path]=data_field
-	movie.addDataField(data_field,'frame')
+	this.display.projector.movie.addDataField(data_field,'frame')
 
-	var display=document.getElementById('data_field_template').cloneNode(true)
-	new Dropdown(display.getElementsByClassName('data_field_bar')[0], display.getElementsByClassName('data_field_details')[0])
-	data_field.html_display=display
-	display.id=data_field.path
-	display.field_name=display.getElementsByClassName('data_field_name')[0]
-	display.field_name.innerHTML=data_field.display_name
-	display.field_value=display.getElementsByClassName('data_field_value')[0]
-	display.field_value.innerHTML='-'
+	var df_display=document.getElementById('data_field_template').cloneNode(true)
+	new Dropdown(df_display.getElementsByClassName('data_field_bar')[0], df_display.getElementsByClassName('data_field_details')[0])
+	data_field.html_display=df_display
+	df_display.id=data_field.path
+	df_display.field_name=df_display.getElementsByClassName('data_field_name')[0]
+	df_display.field_name.innerHTML=data_field.display_name
+	df_display.field_value=df_display.getElementsByClassName('data_field_value')[0]
+	df_display.field_value.innerHTML='-'
 //	display.field_colormap=display.getElementsByClassName('data_field_colormap')[0]
 	
-	
-	this.elem.appendChild(display)
+	this.elem.appendChild(df_display)
 
 	if( !this.reference_data_field ) 
 	{ 
-		this.set_reference_data_field(data_field)
+		this.setReferenceDataField(data_field)
 	}
 }
 
-DataFieldManager.prototype.updateXY = function(xy)
+DataFieldManager.prototype.updateXY = function(t,x,y)
 {
-	for( var i=0; i<this.data_field_paths.length-1; i++)
+	var df=null;
+	var self=this
+	for( var i=0; i<this.data_field_paths.length; i++)
 	{
+		df=this.data_fields[this.data_field_paths[i]]
+		if( df.visible && 
+            t>-1 && t<df.frame_count &&
+            x>-1 && x<df.nx &&
+            y>-1 && y<df.ny )
+		{
+			// The data array are indexed by frame,row,column
+			jsonCall(df.path+'/'+t+','+y+','+x,self.updateDisplayValue,df)
+		}
+		else
+		{
+			df.html_display.field_value.innerHTML="-"
+		}
 	}
 }
 
-DataFieldManager.prototype.updateValue = function(path,v)
+DataFieldManager.prototype.updateDisplayValue = function(v,df)
 {
-	this.data_fields[path].field_value.innerHTML=v
+	if( df.unit!=df._unit )
+	{
+		v=units.convert(df._unit,df.unit,v)
+	}
+	df.html_display.field_value.innerHTML=sprintf(df.format,v)+"<span class='label'>"+df.unit+"</span>"
 }
 	
-DataFieldManager.prototype.set_reference_data_field = function(data_field)
+DataFieldManager.prototype.setReferenceDataField = function(data_field)
 {
 	// Set the reference data field
 	this.reference_data_field=data_field 
@@ -434,7 +97,7 @@ DataFieldManager.prototype.set_reference_data_field = function(data_field)
 	}
 }
 
-DataFieldManager.prototype.del_data_field = function(data_field)
+DataFieldManager.prototype.removeDataField = function(data_field)
 {
 	console.log('Deleting data field: ')
 	console.log(data_field)
@@ -443,8 +106,23 @@ DataFieldManager.prototype.del_data_field = function(data_field)
 	this.data_field_paths.splice(this.data_field_paths.indexOf(data_field),1)
 	if( df===this.reference_data_field )
 	{
-		this.set_reference_data_field(this.data_field_paths[-1])
+		this.setReferenceDataField(this.data_field_paths[-1])
 	}
+}
+
+function StatusEditor(name,data_field_mgr)
+{
+	var span=document.createElement('span')
+	span.className='label'
+	var select=document.createElement('select')
+	units.unit_select(select,data_field_mgr.reference_data_field[name+'_unit'])
+	select.addEventListener('change',function(e) {data_field_mgr.reference_data_field[name+'_unit']=e.target.value})
+	span.appendChild(select)
+	var input=document.createElement('input')
+	input.value=data_field_mgr.reference_data_field[name+'_format']
+	input.addEventListener('change',function(e) {data_field_mgr.reference_data_field[name+'_format']=e.target.value})
+	span.appendChild(input)
+	this.html=span
 }
 
 function converted_value(v)
@@ -473,450 +151,6 @@ function converted_time(t)
 	}
 	return t
 }
-
-/*
- * The depiction manager
- */
-function DepictionManager(elem)
-{
-	this.elem=elem;
-	this.display=null;
-	this.depictions=[];
-}
-
-DepictionManager.prototype.addDepiction = function (obj,n)
-{
-	this.depictions.splice(n!=null?n:this.depictions.length,0,obj);
-	if( obj.editable )
-	{
-//		obj.div=document.createElement('div');
-//		obj.div.depiction=obj;
-//		obj.div.className='depiction';
-//		var self=this;
-//		obj.div.addEventListener('click',function(e) {self.selectDepiction(e.target.depiction)}); 
-//		obj.div.innerHTML=obj;
-//		this.elem.appendChild(obj.div);
-//		this.selectDepiction(obj);
-	}
-}
-
-DepictionManager.prototype.removeDepiction = function (obj)
-{
-	var ndx;
-	while( (ndx=this.depictions.indexOf(obj)) != -1 ) 
-	{ 
-		var depiction=this.depictions[ndx];
-		this.depictions.splice(ndx,1); 
-		if( depiction.div )
-		{
-			depiction.div.parentElement.removeChild(depiction.div);
-		}
-	}
-}
-
-DepictionManager.prototype.selectDepiction = function(obj)
-{
-	for( var i=0; i<this.depictions.length; i++)
-	{
-		var d=this.depictions[i];
-		if( d.div )
-		{
-			if( obj===d )
-			{
-				add_class(d.div,'selected');
-				document.getElementById(d.getEditor()).style.display='block';
-				d.selected=true;
-			}
-			else
-			{
-				remove_class(d.div,'selected');
-				d.selected=false;
-			}
-		}
-	}	
-	this.display.redraw();
-}
-
-/*
- *  The display object
- */
-function Display(elem,depiction_mgr,data_field_mgr,status_mgr)
-{
-	var self=this
-
-	// Our internal state
-	this.w=0;
-	this.h=0;
-	this.x=0;
-	this.y=0;
-	this.zoom_level=1.0;
-	this.smooth=false;
-	this.data_field_mgr=data_field_mgr
-	this.data_field_mgr.display=this
-	Object.defineProperty(this,'reference_data_field',{ get: function() { return self.data_field_mgr.reference_data_field } } )
-	this.depiction_mgr=depiction_mgr;
-	this.depiction_mgr.display=this;
-	this.status_mgr=status_mgr
-	this.status_mgr.display=this
-	this.listeners={};
-
-	// The Current tool
-	this.tool=null;
-	// Add a stylesheet
-	add_stylesheet("display.css");
-
-	// Make the canvas
-	this.canvas=document.createElement("canvas");
-	this.paper=this.canvas.getContext('2d');
-	this.canvas.width=100;
-	this.canvas.height=100;
-	this.canvas.tabIndex=0;
-	add_class(this.canvas,"glf_canvas");
-	this.container=document.createElement("div");
-	add_class(this.container,"glf_container");
-	this.container.appendChild(this.canvas);
-	elem.appendChild(this.container);
-	this.controls=document.createElement("div");
-	add_class(this.controls,"glf_controls");
-	elem.appendChild(this.controls);	
-	this.info=document.createElement("div");
-	add_class(this.info,"glf_info");
-	elem.appendChild(this.info);
-	this.info_status=document.createElement("div");
-	add_class(this.info_status,"glf_info_status");
-	this.info.appendChild(this.info_status);
-	this.model_info=document.createElement("div");
-	add_class(this.info,"glf_info");
-	this.info.appendChild(this.model_info);
-
-	// Register some events
-	var self=this;
-	this.container.addEventListener('mouseup',function() { self.resize(); }); 
-	this.canvas.addEventListener('mouseclick', function(e) { self.tool.mouseclick(self,e); });
-	this.canvas.addEventListener('mousedown', function(e) { self.tool.mousedown(self,e); });
-	this.canvas.addEventListener('mouseup',function(e) {self.tool.mouseup(self,e);});
-	this.canvas.addEventListener('mousemove',function(e) {self.tool.mousemove(self,e);});
-	this.canvas.addEventListener('mousemove',function(e) {self.updateXY(e);});
-	this.canvas.addEventListener('mouseout',function(e) {self.tool.mouseout(self,e);});
-	this.canvas.addEventListener('mousewheel',function(e) {self.tool.mousewheel(self,e);});
-	this.canvas.addEventListener('keydown',function(e) {self.tool.keydown(self,e);});
-	this.canvas.addEventListener('keyup',function(e) {self.tool.keyup(self,e);});
-	this.resize();
-	var rect = this.canvas.getBoundingClientRect();
-	this.updateXY({clientX:rect.left,clientY:rect.top})
-}
-
-Display.prototype.toString = function()
-{
-	return "Display[canvas#"+this.canvas.id+"]";
-}
-
-Display.prototype.updateXY = function(e)
-{
-	var self=this
-	// Update the XY locations
-	var xy=this.xy(e);
-	xy.x=Math.floor(xy.x)
-	xy.y=Math.floor(xy.y)
-	var fmt="%s"
-	var dfxy={x:'-',y:'-'}
-	var unit=''
-	if( this.data_field_mgr.reference_data_field )
-	{
-		var df=this.data_field_mgr.reference_data_field
-		dfxy=df.xy(xy.x,xy.y)
-		fmt=df.dimension_format
-		unit=df.dimension_unit
-	}
-	
-	this.status_mgr.set_status('xy','('+xy.x+','+xy.y+')')
-
-	var status_string=sprintf('('+fmt+' <span class="label">%s</span>,'+fmt+' <span class="label">%s</span>)',dfxy.x,unit,dfxy.y,unit)
-	this.status_mgr.set_status('dimensional_xy',status_string)
-	if( this.projector && !this.projector.playing )
-	{
-		this.data_field_mgr.updateXY(xy)
-	}
-}
-
-
-Display.prototype.addDepiction = function (obj,n)
-{
-	this.depiction_mgr.addDepiction(obj,n);
-}
-
-Display.prototype.removeDepiction = function (obj)
-{
-	this.depiction_mgr.removeDepiction(obj);
-}
-
-Display.prototype.selectDepiction = function(obj)
-{
-	this.depiction_mgr.selectDepiction(obj);
-}
-
-Display.prototype.setSize = function (w,h)
-{
-	this.container.style.width=w+"px";
-	this.container.style.height=h+"px";
-	this.resize();
-}
-
-Display.prototype.save = function()
-{
-	window.open(this.canvas.toDataURL())
-}
-
-Display.prototype.resize = function ()
-{
-	var s=window.getComputedStyle(this.container);
-	this.canvas.width=this.container.clientWidth-parseInt(s.getPropertyValue('padding-left'))-parseInt(s.getPropertyValue('padding-right'));
-	this.canvas.height=this.container.clientHeight-parseInt(s.getPropertyValue('padding-top'))-parseInt(s.getPropertyValue('padding-bottom'));;
-	this.canvas.style.width=this.canvas.width+"px";
-	this.canvas.style.height=this.canvas.height+"px";
-	this.w=this.canvas.width/this.zoom_level;
-	this.h=this.canvas.width/this.zoom_level;
-	this.redraw();
-}
-
-Display.prototype.getBounds = function()
-{
-	var top=Number.MAX_VALUE;
-	var bottom=Number.MIN_VALUE;
-	var left=Number.MAX_VALUE;
-	var right=Number.MIN_VALUE;
-	var bounds=null;
-
-	for( var i=0; i<this.depictions.length; i++)
-	{
-		if( this.depictions[i].getBounds )
-		{
-			bounds=this.depictions[i].getBounds();
-			top=Math.min(top,bounds.y);
-			left=Math.min(left,bounds.x);
-			bottom=Math.max(bottom,bounds.y+bounds.height);
-			right=Math.max(right,bounds.x+bounds.width);
-		}
-	}
-	var width=right-left;
-	var height=bottom-top;
-	return {x: left,
-            y: top,
-            width: width,
-            height: height};
-}
-
-Display.prototype.reset = function()
-{
-	var bounds=this.getBounds();
-	console.log(bounds);
-	this.w=bounds.width;
-	this.h=bounds.height;
-	this.canvas.width=this.w;
-	this.canvas.height=this.h;
-	this.canvas.style.width=this.w+"px";
-	this.canvas.style.height=this.h+"px";
-	this.x=bounds.x;
-	this.y=bounds.y;
-	this.zoom_level=1.0;
-	this.redraw();
-}
-
-Display.prototype.xy = function(e)
-{
-	var rect = this.canvas.getBoundingClientRect();
-	var x=(e.clientX-rect.left)/this.zoom_level-this.x;
-	var y=(e.clientY-rect.top)/this.zoom_level-this.y;
-	return {'x':x,'y':y};
-}
-
-Display.prototype.zoom = function(n,x,y)
-{ 
-	if( x!=null )
-	{
-		this.x=(x+this.x)*this.zoom_level/n-x;
-		this.y=(y+this.y)*this.zoom_level/n-y;
-	}
-	this.zoom_level=n;
-	this.w=this.canvas.width/this.zoom_level;
-	this.h=this.canvas.width/this.zoom_level;
-	this.redraw();
-}
-
-Display.prototype.redraw = function()
-{
-	// Reset the canvas
-	this.canvas.width=this.canvas.width;
-	// We like chunky bitmaps
-	this.paper.imageSmoothingEnabled=this.smooth;
-	this.paper.scale(this.zoom_level,this.zoom_level); 
-	this.paper.translate(this.x,this.y);
-	for( var i=0; i<this.depiction_mgr.depictions.length; i++)
-	{
-		if( this.depiction_mgr.depictions[i].display )
-		{
-			this.depiction_mgr.depictions[i].call(this);
-		}
-	}
-}
-
-
-/*
- * projector.js
- */
-
-function new_button(onclick,name,controls)
-{
-	var btn=new Image();
-	btn.src=get_img_url(name+".svg");
-	btn.addEventListener('click',onclick);
-	controls.appendChild(btn)
-	return btn;
-}
-
-function Projector(display,movie)
-{
-	this.display=display;
-	display.projector=this;
-	// some listeners
-
-	this.movie=movie
-	movie.projector=this
-	var self=this;
-	movie.addEventListener('load',function(e) { self.loaded(e); });
-	movie.addEventListener('stop',function(e) { self.stopped(e); });
-	this.display.addDepiction( movie );
-	movie.show();
-	this.loop=false;
-	this.fps=10;
-	this.frameTime=0
-	this.direction=1;
-	this.playing=false;
-
-
-	// Setup the controls
-	this.controls=document.createElement("div");
-	add_class(this.controls,"glf_projector_controls");
-	display.controls.appendChild(this.controls);
-	// And the buttons
-	this.btn_begining=new_button(function(e){self.begining();},"begining",this.controls);
-	this.btn_rr=new_button(function(e){self.rewind();},"rr",this.controls);
-	this.btn_pause=new_button(function(e){self.pause();},"pause",this.controls);
-	this.btn_pause.style.display='none';
-	this.btn_play=new_button(function(e){self.play();},"play",this.controls);
-	this.btn_ff=new_button(function(e){self.fastforward();},"ff",this.controls);
-	this.btn_end=new_button(function(e){self.end();},"end",this.controls);
-}
-
-Projector.prototype.pause = function()
-{
-	this.playing=false;
-	this.btn_play.style.display='';
-	this.btn_pause.style.display='none';
-	remove_class(this.controls,"glf_playing")
-	this.frameTime=-1
-}
-
-Projector.prototype.play = function()
-{
-	this.playing=true;
-	this.btn_play.style.display='none';
-	this.btn_pause.style.display='';
-	add_class(this.controls,"glf_playing")
-	this.next();
-}
-
-Projector.prototype.rewind = function()
-{
-	if( this.direction==-1 && this.playing )
-	{
-		this.fps+=10;
-	}
-	else
-	{
-		this.direction=-1;
-		this.next();
-	}
-}
-Projector.prototype.fastforward = function()
-{
-	if( this.direction==1 && this.playing )
-	{
-		this.fps+=10;
-	}
-	else
-	{
-		this.direction=1;
-		this.next();
-	}
-}
-
-Projector.prototype.begining = function()
-{
-	this.goto(this.movie.first)
-}
-
-Projector.prototype.end = function()
-{
-	this.goto(this.movie.last)
-}
-
-Projector.prototype.goto = function(frame)
-{
-	this.movie.frame=frame
-	this.movie.show()
-	this.display.status_mgr.set_status('frame',frame)
-}
-
-Projector.prototype.next = function()
-{
-	this.movie.next(this.direction);
-	frame=this.movie.frame
-	if( this.playing && this.frameTime>0 ) 
-	{
-		this.actualFPS=Math.round(1000/(performance.now()-this.frameTime));
-		this.display.status_mgr.set_status('fps',this.actualFPS+'/'+this.fps)
-	}
-	else
-	{
-		this.display.status_mgr.set_status('fps','-/'+this.fps)
-	}
-	this.frameTime=performance.now();
-
-	var fmt="%s"
-	var t=0
-	var unit=''	
-	if( this.display.data_field_mgr.reference_data_field )
-	{
-		var df=this.display.data_field_mgr.reference_data_field
-		t=df.time(frame)
-		fmt=df.time_format
-		unit=df.time_unit
-	}
-	time_status=sprintf(fmt+' <span class="label">%s</span>',t,unit)
-	this.display.status_mgr.set_status('time',time_status)
-	this.display.status_mgr.set_status('frame',frame)
-}
-
-Projector.prototype.loaded = function(e)
-{
-	this.display.redraw();
-	if( this.playing )
-	{
-		var self=this;
-		window.setTimeout(function() { self.next(); } ,(1000-(performance.now()-this.frameTime))/this.fps);
-	}
-	// TODO fire load event
-	//this.updateXY();
-}
-
-Projector.prototype.stopped = function(e)
-{
-	this.pause();
-	this.direction=1;
-	this.display.status_mgr.set_status('fps','-/'+this.fps)
-}
-
 
 /*
  * depection.js
@@ -1317,13 +551,13 @@ Movie.prototype.addEventListener = function(type,listener)
 
 Movie.prototype.dispatchEvent = function(event_name,e)
 {
-		if(event_name in this.listeners)
+	if(event_name in this.listeners)
+	{
+		for( var n=0; n<this.listeners[event_name].length; n++)
 		{
-			for( var n=0; n<this.listeners[event_name].length; n++)
-			{
-				this.listeners[event_name][n](e);
-			}
+			this.listeners[event_name][n](e);
 		}
+	}
 }
 
 Movie.prototype.toString = function()
@@ -1366,6 +600,766 @@ Movie.prototype.show = function()
 		df.img.src=df.prefix+df.path+'.'+df.data_field.renderer+'.'+sprintf("%05d",this.frame)+'.png'
 	}
 }
+/*
+ * The depiction manager
+ */
+function DepictionManager(elem,display)
+{
+	this.elem=elem;
+	this.display=display;
+	this.depictions=[];
+}
+
+DepictionManager.prototype.addDepiction = function (obj,n)
+{
+	n=n==null?this.depictions.length:n
+	this.depictions.splice(n,0,obj);
+	if( obj.editable )
+	{
+//		obj.div=document.createElement('div');
+//		obj.div.depiction=obj;
+//		obj.div.className='depiction';
+//		var self=this;
+//		obj.div.addEventListener('click',function(e) {self.selectDepiction(e.target.depiction)}); 
+//		obj.div.innerHTML=obj;
+//		this.elem.appendChild(obj.div);
+//		this.selectDepiction(obj);
+	}
+}
+
+DepictionManager.prototype.removeDepiction = function (obj)
+{
+	var ndx;
+	while( (ndx=this.depictions.indexOf(obj)) != -1 ) 
+	{ 
+		var depiction=this.depictions[ndx];
+		this.depictions.splice(ndx,1); 
+		if( depiction.div )
+		{
+			depiction.div.parentElement.removeChild(depiction.div);
+		}
+	}
+}
+
+DepictionManager.prototype.selectDepiction = function(obj)
+{
+	for( var i=0; i<this.depictions.length; i++)
+	{
+		var d=this.depictions[i];
+		if( d.div )
+		{
+			if( obj===d )
+			{
+				add_class(d.div,'selected');
+				document.getElementById(d.getEditor()).style.display='block';
+				d.selected=true;
+			}
+			else
+			{
+				remove_class(d.div,'selected');
+				d.selected=false;
+			}
+		}
+	}	
+	this.display.redraw();
+}
+
+/*
+ *  display.js
+ *  Main Display object
+ */
+
+
+/*
+ *  The display object
+ */
+function Display(elem,depiction_elem,data_field_elem,status_elem)
+{
+	var self=this
+
+	// Our internal state
+	this.w=0;
+	this.h=0;
+	this.x=0;
+	this.y=0;
+	this.zoom_level=1.0;
+	this.smooth=false;
+
+	// Add a stylesheet
+	add_stylesheet("display.css");
+
+	// create the depiction manager
+	this.depiction_mgr=new DepictionManager(depiction_elem,this)
+
+	// create the data field mananger
+	this.data_field_mgr=new DataFieldManager(data_field_elem,this)
+	Object.defineProperty(this,'reference_data_field',{ get: function() { return self.data_field_mgr.reference_data_field } } )
+
+	// create the status manager
+	this.status_mgr=new StatusManager(status_elem,this)
+	this.status_mgr.add_status('fps')
+	this.status_mgr.add_status('frame')
+	this.status_mgr.add_status('time')
+	this.status_mgr.add_status('xy')
+	this.status_mgr.add_status('dimensional_xy','dimensional xy','xy')
+
+	// Make the canvas
+	this.canvas=document.createElement("canvas");
+	this.paper=this.canvas.getContext('2d');
+	this.canvas.width=100;
+	this.canvas.height=100;
+	this.canvas.tabIndex=0;
+	add_class(this.canvas,"glf_canvas");
+	this.container=document.createElement("div");
+	add_class(this.container,"glf_container");
+	this.container.appendChild(this.canvas);
+	elem.appendChild(this.container);
+	this.controls=document.createElement("div");
+	add_class(this.controls,"glf_controls");
+	elem.appendChild(this.controls);	
+	this.info=document.createElement("div");
+	add_class(this.info,"glf_info");
+	elem.appendChild(this.info);
+	this.info_status=document.createElement("div");
+	add_class(this.info_status,"glf_info_status");
+	this.info.appendChild(this.info_status);
+	this.model_info=document.createElement("div");
+	add_class(this.info,"glf_info");
+	this.info.appendChild(this.model_info);
+
+	// create the projector
+	this.projector=new Projector(this)
+
+	// create the toolbox
+	this.tool=null;
+	this.toolbox=new ToolBox(this);
+
+
+	// Register some events
+	var self=this;
+	this.container.addEventListener('mouseup',function() { self.resize(); }); 
+	this.canvas.addEventListener('mouseclick', function(e) { self.tool.mouseclick(self,e); });
+	this.canvas.addEventListener('mousedown', function(e) { self.tool.mousedown(self,e); });
+	this.canvas.addEventListener('mouseup',function(e) {self.tool.mouseup(self,e);});
+	this.canvas.addEventListener('mousemove',function(e) {self.tool.mousemove(self,e);});
+	this.canvas.addEventListener('mousemove',function(e) {self.updateXY(e);});
+	this.canvas.addEventListener('mouseout',function(e) {self.tool.mouseout(self,e);});
+	this.canvas.addEventListener('mousewheel',function(e) {self.tool.mousewheel(self,e);});
+	this.canvas.addEventListener('keydown',function(e) {self.tool.keydown(self,e);});
+	this.canvas.addEventListener('keyup',function(e) {self.tool.keyup(self,e);});
+	this.resize();
+	var rect = this.canvas.getBoundingClientRect();
+	this.updateXY({clientX:rect.left,clientY:rect.top})
+}
+
+Display.prototype.toString = function()
+{
+	return "Display[canvas#"+this.canvas.id+"]";
+}
+
+Display.prototype.updateXY = function(e)
+{
+	var self=this
+	// Update the XY locations
+	var xy=this.xy(e);
+	xy.x=Math.floor(xy.x)
+	xy.y=Math.floor(xy.y)
+	var fmt="%s"
+	var dfxy={x:'-',y:'-'}
+	var unit=''
+	if( this.data_field_mgr.reference_data_field )
+	{
+		var df=this.data_field_mgr.reference_data_field
+		dfxy=df.xy(xy.x,xy.y)
+		fmt=df.dimension_format
+		unit=df.dimension_unit
+	}
+	
+	this.status_mgr.set_status('xy','('+xy.x+','+xy.y+')')
+
+	var status_string=sprintf('('+fmt+' <span class="label">%s</span>,'+fmt+' <span class="label">%s</span>)',dfxy.x,unit,dfxy.y,unit)
+	this.status_mgr.set_status('dimensional_xy',status_string)
+	if( this.projector && !this.projector.playing )
+	{
+		this.data_field_mgr.updateXY(this.projector.movie.frame,xy.x,xy.y)
+	}
+}
+
+
+Display.prototype.addDataField = function (df)
+{
+	this.data_field_mgr.addDataField(df)
+}
+
+Display.prototype.addDepiction = function (obj,n)
+{
+	this.depiction_mgr.addDepiction(obj,n);
+}
+
+Display.prototype.removeDepiction = function (obj)
+{
+	this.depiction_mgr.removeDepiction(obj);
+}
+
+Display.prototype.selectDepiction = function(obj)
+{
+	this.depiction_mgr.selectDepiction(obj);
+}
+
+Display.prototype.setSize = function (w,h)
+{
+	this.container.style.width=w+"px";
+	this.container.style.height=h+"px";
+	this.resize();
+}
+
+Display.prototype.save = function()
+{
+	window.open(this.canvas.toDataURL())
+}
+
+Display.prototype.resize = function ()
+{
+	var s=window.getComputedStyle(this.container);
+	this.canvas.width=this.container.clientWidth-parseInt(s.getPropertyValue('padding-left'))-parseInt(s.getPropertyValue('padding-right'));
+	this.canvas.height=this.container.clientHeight-parseInt(s.getPropertyValue('padding-top'))-parseInt(s.getPropertyValue('padding-bottom'));;
+	this.canvas.style.width=this.canvas.width+"px";
+	this.canvas.style.height=this.canvas.height+"px";
+	this.w=this.canvas.width/this.zoom_level;
+	this.h=this.canvas.width/this.zoom_level;
+	this.redraw();
+}
+
+Display.prototype.getBounds = function()
+{
+	var top=Number.MAX_VALUE;
+	var bottom=Number.MIN_VALUE;
+	var left=Number.MAX_VALUE;
+	var right=Number.MIN_VALUE;
+	var bounds=null;
+
+	for( var i=0; i<this.depictions.length; i++)
+	{
+		if( this.depictions[i].getBounds )
+		{
+			bounds=this.depictions[i].getBounds();
+			top=Math.min(top,bounds.y);
+			left=Math.min(left,bounds.x);
+			bottom=Math.max(bottom,bounds.y+bounds.height);
+			right=Math.max(right,bounds.x+bounds.width);
+		}
+	}
+	var width=right-left;
+	var height=bottom-top;
+	return {x: left,
+            y: top,
+            width: width,
+            height: height};
+}
+
+Display.prototype.reset = function()
+{
+	var bounds=this.getBounds();
+	console.log(bounds);
+	this.w=bounds.width;
+	this.h=bounds.height;
+	this.canvas.width=this.w;
+	this.canvas.height=this.h;
+	this.canvas.style.width=this.w+"px";
+	this.canvas.style.height=this.h+"px";
+	this.x=bounds.x;
+	this.y=bounds.y;
+	this.zoom_level=1.0;
+	this.redraw();
+}
+
+Display.prototype.xy = function(e)
+{
+	var rect = this.canvas.getBoundingClientRect();
+	var x=(e.clientX-rect.left)/this.zoom_level-this.x;
+	var y=(e.clientY-rect.top)/this.zoom_level-this.y;
+	return {'x':x,'y':y};
+}
+
+Display.prototype.zoom = function(n,x,y)
+{ 
+	if( x!=null )
+	{
+		this.x=(x+this.x)*this.zoom_level/n-x;
+		this.y=(y+this.y)*this.zoom_level/n-y;
+	}
+	this.zoom_level=n;
+	this.w=this.canvas.width/this.zoom_level;
+	this.h=this.canvas.width/this.zoom_level;
+	this.redraw();
+}
+
+Display.prototype.redraw = function()
+{
+	// Reset the canvas
+	this.canvas.width=this.canvas.width;
+	// We like chunky bitmaps
+	this.paper.imageSmoothingEnabled=this.smooth;
+	this.paper.scale(this.zoom_level,this.zoom_level); 
+	this.paper.translate(this.x,this.y);
+	for( var i=0; i<this.depiction_mgr.depictions.length; i++)
+	{
+		if( this.depiction_mgr.depictions[i].display )
+		{
+			this.depiction_mgr.depictions[i].call(this);
+		}
+	}
+}
+
+
+/*
+ * projector.js
+ */
+
+function new_button(onclick,name,controls)
+{
+	var btn=new Image();
+	btn.src=get_img_url(name+".svg");
+	btn.addEventListener('click',onclick);
+	controls.appendChild(btn)
+	return btn;
+}
+
+function Projector(display)
+{
+	this.display=display;
+	// some listeners
+
+	var self=this;
+	this.movie=new Movie()
+	this.movie.projector=this
+	this.movie.addEventListener('load',function(e) { self.loaded(e); });
+	this.movie.addEventListener('stop',function(e) { self.stopped(e); });
+	this.display.addDepiction( this.movie );
+	this.movie.show();
+	this.loop=false;
+	this.fps=10;
+	this.frameTime=0
+	this.direction=1;
+	this.playing=false;
+
+
+	// Setup the controls
+	this.controls=document.createElement("div");
+	add_class(this.controls,"glf_projector_controls");
+	display.controls.appendChild(this.controls);
+	// And the buttons
+	this.btn_begining=new_button(function(e){self.begining();},"begining",this.controls);
+	this.btn_rr=new_button(function(e){self.rewind();},"rr",this.controls);
+	this.btn_pause=new_button(function(e){self.pause();},"pause",this.controls);
+	this.btn_pause.style.display='none';
+	this.btn_play=new_button(function(e){self.play();},"play",this.controls);
+	this.btn_ff=new_button(function(e){self.fastforward();},"ff",this.controls);
+	this.btn_end=new_button(function(e){self.end();},"end",this.controls);
+}
+
+Projector.prototype.pause = function()
+{
+	this.playing=false;
+	this.btn_play.style.display='';
+	this.btn_pause.style.display='none';
+	remove_class(this.controls,"glf_playing")
+	this.frameTime=-1
+}
+
+Projector.prototype.play = function()
+{
+	this.playing=true;
+	this.btn_play.style.display='none';
+	this.btn_pause.style.display='';
+	add_class(this.controls,"glf_playing")
+	this.next();
+}
+
+Projector.prototype.rewind = function()
+{
+	if( this.direction==-1 && this.playing )
+	{
+		this.fps+=10;
+	}
+	else
+	{
+		this.direction=-1;
+		this.next();
+	}
+}
+Projector.prototype.fastforward = function()
+{
+	if( this.direction==1 && this.playing )
+	{
+		this.fps+=10;
+	}
+	else
+	{
+		this.direction=1;
+		this.next();
+	}
+}
+
+Projector.prototype.begining = function()
+{
+	this.goto(this.movie.first)
+}
+
+Projector.prototype.end = function()
+{
+	this.goto(this.movie.last)
+}
+
+Projector.prototype.goto = function(frame)
+{
+	this.movie.frame=frame
+	this.movie.show()
+	this.display.status_mgr.set_status('frame',frame)
+}
+
+Projector.prototype.next = function()
+{
+	this.movie.next(this.direction);
+	frame=this.movie.frame
+	if( this.playing && this.frameTime>0 ) 
+	{
+		this.actualFPS=Math.round(1000/(performance.now()-this.frameTime));
+		this.display.status_mgr.set_status('fps',this.actualFPS+'/'+this.fps)
+	}
+	else
+	{
+		this.display.status_mgr.set_status('fps','-/'+this.fps)
+	}
+	this.frameTime=performance.now();
+
+	var fmt="%s"
+	var t=0
+	var unit=''	
+	if( this.display.data_field_mgr.reference_data_field )
+	{
+		var df=this.display.data_field_mgr.reference_data_field
+		t=df.time(frame)
+		fmt=df.time_format
+		unit=df.time_unit
+	}
+	time_status=sprintf(fmt+' <span class="label">%s</span>',t,unit)
+	this.display.status_mgr.set_status('time',time_status)
+	this.display.status_mgr.set_status('frame',frame)
+}
+
+Projector.prototype.loaded = function(e)
+{
+	this.display.redraw();
+	if( this.playing )
+	{
+		var self=this;
+		window.setTimeout(function() { self.next(); } ,(1000-(performance.now()-this.frameTime))/this.fps);
+	}
+	// TODO fire load event
+	//this.updateXY();
+}
+
+Projector.prototype.stopped = function(e)
+{
+	this.pause();
+	this.direction=1;
+	this.display.status_mgr.set_status('fps','-/'+this.fps)
+}
+
+
+/*
+ * sprintf.js
+ */
+;
+(function(win) {
+    var re = {
+        not_string: /[^s]/,
+        number: /[def]/,
+        text: /^[^\x25]+/,
+        modulo: /^\x25{2}/,
+/*        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/, */
+        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(?:(_[., ]?))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/,
+        key: /^([a-z_][a-z_\d]*)/i,
+        key_access: /^\.([a-z_][a-z_\d]*)/i,
+        index_access: /^\[(\d+)\]/,
+        sign: /^[\+\-]/
+    }
+
+    function sprintf() {
+        var key = arguments[0], cache = sprintf.cache
+        if (!(cache[key] && cache.hasOwnProperty(key))) {
+            cache[key] = sprintf.parse(key)
+        }
+        return sprintf.format.call(null, cache[key], arguments)
+    }
+
+    sprintf.format = function(parse_tree, argv) {
+        var cursor = 1, tree_length = parse_tree.length, node_type = "", arg, output = [], i, k, match, pad, pad_character, pad_length, is_positive = true, sign = ""
+        for (i = 0; i < tree_length; i++) {
+            node_type = get_type(parse_tree[i])
+            if (node_type === "string") {
+                output[output.length] = parse_tree[i]
+            }
+            else if (node_type === "array") {
+                match = parse_tree[i] // convenience purposes only
+                if (match[2]) { // keyword argument
+                    arg = argv[cursor]
+                    for (k = 0; k < match[2].length; k++) {
+                        if (!arg.hasOwnProperty(match[2][k])) {
+                            throw new Error(sprintf("[sprintf] property '%s' does not exist", match[2][k]))
+                        }
+                        arg = arg[match[2][k]]
+                    }
+                }
+                else if (match[1]) { // positional argument (explicit)
+                    arg = argv[match[1]]
+                }
+                else { // positional argument (implicit)
+                    arg = argv[cursor++]
+                }
+
+                if (get_type(arg) == "function") {
+                    arg = arg()
+                }
+
+                if (re.not_string.test(match[9]) && (get_type(arg) != "number" && isNaN(arg))) {
+                    throw new TypeError(sprintf("[sprintf] expecting number but found %s", get_type(arg)))
+                }
+
+				sign=""
+				is_positive = re.number.test(match[9]) ? arg >= 0 : true
+
+                switch (match[9]) {
+                    case "b":
+                        arg = arg.toString(2)
+                    break
+                    case "c":
+                        arg = String.fromCharCode(arg)
+                    break
+                    case "d":
+                        arg = parseInt(arg, 10).toString()
+                    break
+                    case "e":
+                        arg = match[8] ? arg.toExponential(match[8]) : arg.toExponential()
+                    break
+                    case "f":
+                        arg = match[8] ? parseFloat(arg).toFixed(match[8]) : parseFloat(arg).toString()
+                    break
+                    case "o":
+                        arg = arg.toString(8)
+                    break
+                    case "s":
+                        arg = ((arg = String(arg)) && match[8] ? arg.substring(0, match[8]) : arg)
+                    break
+                    case "u":
+                        arg = arg >>> 0
+                    break
+                    case "x":
+                        arg = arg.toString(16)
+                    break
+                    case "X":
+                        arg = arg.toString(16).toUpperCase()
+                    break
+                }
+				if( match[3] && (match[9]=='d' || match[9]=='f')) {
+					seperator = match[3].length>1 ? match[3][1] : '\u2006'
+					var dp = arg.indexOf('.')
+					dp = dp<0 ? arg.length : dp
+					// Seperate the the numbers to the left of the decimal point
+					for (n=dp-3; n>0; n-=3)
+					{
+						arg=arg.substring(0,n)+seperator+arg.substring(n)	
+					}
+				}
+                if (!is_positive || (re.number.test(match[9]) && match[4])) {
+                    sign = is_positive ? "+" : "-"
+                    arg = arg.toString().replace(re.sign, "")
+                }
+                pad_character = match[5] ? match[5] == "0" ? "0" : match[5].charAt(1) : " "
+                pad_length = match[7] - (sign + arg).length
+                pad = match[7] ? str_repeat(pad_character, pad_length) : ""
+                output[output.length] = match[6] ? sign + arg + pad : (pad_character == 0 ? sign + pad + arg : pad + sign + arg)
+            }
+        }
+        return output.join("")
+    }
+
+    sprintf.cache = {}
+
+    sprintf.parse = function(fmt) {
+        var _fmt = fmt, match = [], parse_tree = [], arg_names = 0
+        while (_fmt) {
+            if ((match = re.text.exec(_fmt)) !== null) {
+                parse_tree[parse_tree.length] = match[0]
+            }
+            else if ((match = re.modulo.exec(_fmt)) !== null) {
+                parse_tree[parse_tree.length] = "%"
+            }
+            else if ((match = re.placeholder.exec(_fmt)) !== null) {
+                if (match[2]) {
+                    arg_names |= 1
+                    var field_list = [], replacement_field = match[2], field_match = []
+                    if ((field_match = re.key.exec(replacement_field)) !== null) {
+                        field_list[field_list.length] = field_match[1]
+                        while ((replacement_field = replacement_field.substring(field_match[0].length)) !== "") {
+                            if ((field_match = re.key_access.exec(replacement_field)) !== null) {
+                                field_list[field_list.length] = field_match[1]
+                            }
+                            else if ((field_match = re.index_access.exec(replacement_field)) !== null) {
+                                field_list[field_list.length] = field_match[1]
+                            }
+                            else {
+                                throw new SyntaxError("[sprintf] failed to parse named argument key")
+                            }
+                        }
+                    }
+                    else {
+                        throw new SyntaxError("[sprintf] failed to parse named argument key")
+                    }
+                    match[2] = field_list
+                }
+                else {
+                    arg_names |= 2
+                }
+                if (arg_names === 3) {
+                    throw new Error("[sprintf] mixing positional and named placeholders is not (yet) supported")
+                }
+                parse_tree[parse_tree.length] = match
+            }
+            else {
+                throw new SyntaxError("[sprintf] unexpected placeholder")
+            }
+            _fmt = _fmt.substring(match[0].length)
+        }
+        return parse_tree
+    }
+
+    var vsprintf = function(fmt, argv, _argv) {
+        _argv = (argv || []).slice(0)
+        _argv.splice(0, 0, fmt)
+        return sprintf.apply(null, _argv)
+    }
+
+    /**
+     * helpers
+     */
+    function get_type(variable) {
+        return Object.prototype.toString.call(variable).slice(8, -1).toLowerCase()
+    }
+
+    function str_repeat(input, multiplier) {
+        return Array(multiplier + 1).join(input)
+    }
+
+    /**
+     * export to either browser or node.js
+     */
+    if (typeof exports !== "undefined") {
+        exports.sprintf = sprintf
+        exports.vsprintf = vsprintf
+    }
+    else {
+        win.sprintf = sprintf
+        win.vsprintf = vsprintf
+
+        if (typeof define === "function" && define.amd) {
+            define(function() {
+                return {
+                    sprintf: sprintf,
+                    vsprintf: vsprintf
+                }
+            })
+        }
+    }
+})(typeof window === "undefined" ? this : window)
+/*
+To seralize the status bar record the visible state of each status, units and format come from the reference data_field and 
+are seralized with the data fields.
+
+To seralize the data fields properties:
+ "path": "/StagYY/psd/psd00/psd_00017/eta"
+ "display_name": "Viscosity"
+ "unit": "Pa s"
+ "format": "%01.e"
+ "dimension_unit": "m"
+ "dimension_format": "%_d"
+ "time_format": "%_d"
+ "time_unit": "s"
+ "renderer": "PuBu_log-1e19-1e24-2DD6D633"
+ "visible": true
+
+
+To deseralize:
+Load the data_field
+Add data_field to data_field_manager
+Apply seralized properties
+*/
+/* 
+ * The status manager 
+ */
+function StatusManager(elem,display)
+{
+	this.elem=elem
+	this.display=display
+	this.status_bar=document.createElement('div')
+	this.status_editor=document.createElement('div')
+	this.elem.appendChild(this.status_bar)
+	this.elem.appendChild(this.status_editor)
+	this.dropdown=new Dropdown(this.status_bar,this.status_editor)
+	this.status_names=[]
+	this.statuses={}
+}
+
+StatusManager.prototype.set_visibility = function(name,visible)
+{
+	if( name in this.statuses )
+	{
+		this.statuses[name].style.display=visible?'':'none'
+	}
+}
+StatusManager.prototype.add_status = function(name,display_name,short_name)
+{
+	var self=this
+	this.status_names.push(name)
+	var status=document.createElement('span')
+	status.status_name=name
+	status.status_display_name=display_name
+	status.status_short_name=short_name
+	var label=document.createElement('span')
+	label.className='label'
+	label.innerHTML=(short_name || display_name || name) + ' : '
+	var value=document.createElement('span')
+	value.className='value'
+	status.appendChild(label)
+	status.appendChild(value)
+	status.value_span=value
+	status.label_span=label
+	this.statuses[name]=status
+	this.status_bar.appendChild(document.createTextNode('\n'))
+	this.status_bar.appendChild(status)
+
+	var status_editor=document.createElement('div')
+	var editor_label=document.createElement('label')
+	status.status_editor=status_editor
+	var cb=document.createElement('input')
+	cb.type='checkbox'
+	cb.checked=true
+	cb.addEventListener('change',function() { self.set_visibility(name,cb.checked) } )
+	editor_label.appendChild(cb)
+	editor_label.appendChild(document.createTextNode(display_name||name))
+	status_editor.appendChild(editor_label)
+	this.status_editor.appendChild(status_editor)
+}
+
+StatusManager.prototype.set_status = function(name,value)
+{
+	if( name in this.statuses )
+	{
+		this.statuses[name].value_span.innerHTML=value
+	}
+}
+
 /* 
  * toolbox.js
  */
@@ -1950,3 +1944,82 @@ function fit_circle(points)
 	}
 	
 }
+var script_src=document.currentScript.src;
+var path=script_src.substring(0,script_src.lastIndexOf('/')+1)+'display/'
+
+function toggle_class(node,classname1,classname2)
+{
+	/* if classname1 exists */
+	if( node.className.search( re=new RegExp('\\b'+classname1+'\\b','g')) >-1 )
+	{
+		node.className=node.className.replace( re,'')
+		node.className=node.className+' '+classname2;
+		node.className=node.className.replace( /\s{2,}/g,' ')
+	}
+	/* if classname 2 exists */
+	else if( node.className.search( re=new RegExp('\\b'+classname2+'\\b','g')) >-1 )
+	{
+		node.className=node.className.replace( re,'')
+		node.className=node.className+' '+classname1;
+		node.className=node.className.replace( /\s{2,}/g,' ')
+	}
+}
+
+function add_class(node,classname)
+{
+	var cn=node.className;
+	if( cn.search( new RegExp('\\b'+classname+'\\b')) == -1 )
+	{
+		node.className=cn+' '+classname;
+	}
+}
+
+function remove_class(node,classname)
+{
+	node.className=node.className.replace( new RegExp('\\b'+classname+'\\b','g'),'')
+	node.className=node.className.replace( /\s{2,}/g,' ')
+}
+
+function has_class(node,classname)
+{
+	return node.className.search( new RegExp('\\b'+classname+'\\b')) > -1 
+}
+
+function add_stylesheet(stylesheet)
+{
+	var style=document.createElement('link');
+	style.rel="stylesheet";
+	style.href=path+"css/"+stylesheet;
+	document.head.appendChild(style);
+}
+
+function get_img_url(img)
+{
+	return path+"img/"+img;
+}
+
+function EventBroadcaster()
+{
+    this.listeners={}
+}
+
+EventBroadcaster.prototype.addEventListener = function(type,listener)
+{
+    if( !(type in this.listeners))
+    {   
+        this.listeners[type]=[];
+    }   
+    this.listeners[type].push(listener);
+}
+
+EventBroadcaster.prototype.dispatchEvent = function(event_name,e)
+{
+    if(event_name in this.listeners)
+    {   
+        for( var n=0; n<this.listeners[event_name].length; n++)
+        {
+            this.listeners[event_name][n].apply(this,[e]);
+        }
+    }   
+}
+

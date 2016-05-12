@@ -16,7 +16,7 @@ function show_dialog()
 {
 	var dialog=document.getElementById('dialog');
 	dialog.style.display='block';
-	toolbox.close()
+	display.toolbox.close()
 }
 
 function hide_dialog()

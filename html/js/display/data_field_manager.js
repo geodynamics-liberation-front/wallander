@@ -10,13 +10,12 @@ function DataFieldManager(elem,display)
 	this.data_fields={}
 }
 
-DataFieldManager.prototype.add_data_field = function(data_field)
+DataFieldManager.prototype.addDataField = function(data_field)
 {
 	console.log('Adding data field: ')
 	console.log(data_field.path)
 
-	data_field._unit=data_field._unit
-	data_field.value=converted_value
+	data_field._unit=data_field.unit
 
 	data_field._dimension_unit=data_field.dimension_unit
 	data_field.xy=converted_xy
@@ -24,44 +23,63 @@ DataFieldManager.prototype.add_data_field = function(data_field)
 	data_field._time=data_field.time
 	data_field._time_unit=data_field.time_unit
 	data_field.time=converted_time
+	data_field.frame_count=data_field._time.length
 	data_field.visible=true
 	
-	this.data_field_paths.push(data_field)
+	this.data_field_paths.push(data_field.path)
 	this.data_fields[data_field.path]=data_field
-	movie.addDataField(data_field,'frame')
+	this.display.projector.movie.addDataField(data_field,'frame')
 
 	var df_display=document.getElementById('data_field_template').cloneNode(true)
 	new Dropdown(df_display.getElementsByClassName('data_field_bar')[0], df_display.getElementsByClassName('data_field_details')[0])
 	data_field.html_display=df_display
 	df_display.id=data_field.path
 	df_display.field_name=df_display.getElementsByClassName('data_field_name')[0]
-	df_display.field_name.innerHTML=data_field.df_display_name
+	df_display.field_name.innerHTML=data_field.display_name
 	df_display.field_value=df_display.getElementsByClassName('data_field_value')[0]
 	df_display.field_value.innerHTML='-'
 //	display.field_colormap=display.getElementsByClassName('data_field_colormap')[0]
 	
-	
-	this.elem.appendChild(display)
+	this.elem.appendChild(df_display)
 
 	if( !this.reference_data_field ) 
 	{ 
-		this.set_reference_data_field(data_field)
+		this.setReferenceDataField(data_field)
 	}
 }
 
-DataFieldManager.prototype.updateXY = function(xy)
+DataFieldManager.prototype.updateXY = function(t,x,y)
 {
-	for( var i=0; i<this.data_field_paths.length-1; i++)
+	var df=null;
+	var self=this
+	for( var i=0; i<this.data_field_paths.length; i++)
 	{
+		df=this.data_fields[this.data_field_paths[i]]
+		if( df.visible && 
+            t>-1 && t<df.frame_count &&
+            x>-1 && x<df.nx &&
+            y>-1 && y<df.ny )
+		{
+			// The data array are indexed by frame,row,column
+			jsonCall(df.path+'/'+t+','+y+','+x,self.updateDisplayValue,df)
+		}
+		else
+		{
+			df.html_display.field_value.innerHTML="-"
+		}
 	}
 }
 
-DataFieldManager.prototype.updateValue = function(path,v)
+DataFieldManager.prototype.updateDisplayValue = function(v,df)
 {
-	this.data_fields[path].field_value.innerHTML=v
+	if( df.unit!=df._unit )
+	{
+		v=units.convert(df._unit,df.unit,v)
+	}
+	df.html_display.field_value.innerHTML=sprintf(df.format,v)+"<span class='label'>"+df.unit+"</span>"
 }
 	
-DataFieldManager.prototype.set_reference_data_field = function(data_field)
+DataFieldManager.prototype.setReferenceDataField = function(data_field)
 {
 	// Set the reference data field
 	this.reference_data_field=data_field 
@@ -79,7 +97,7 @@ DataFieldManager.prototype.set_reference_data_field = function(data_field)
 	}
 }
 
-DataFieldManager.prototype.del_data_field = function(data_field)
+DataFieldManager.prototype.removeDataField = function(data_field)
 {
 	console.log('Deleting data field: ')
 	console.log(data_field)
@@ -88,7 +106,7 @@ DataFieldManager.prototype.del_data_field = function(data_field)
 	this.data_field_paths.splice(this.data_field_paths.indexOf(data_field),1)
 	if( df===this.reference_data_field )
 	{
-		this.set_reference_data_field(this.data_field_paths[-1])
+		this.setReferenceDataField(this.data_field_paths[-1])
 	}
 }
 

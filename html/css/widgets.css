@@ -21,16 +21,28 @@
 	margin-top: 1px;
 	margin-bottom: 1px;
 	padding: 0;
-	border: 1px solid rgba(255,255,255,1.0);
+	border: 1px solid rgb(255,255,255);
 	background-image: url("data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAoSURBVBiVY/z//z8DOtiyZQuGIBOGKhxgABWyYHO4j48PI+2tpr5CAKIuCi6gLUyOAAAAAElFTkSuQmCC");
 }
 
 .colormap_dropdown .colorbar_wrapper:hover {
-	border: 1px solid rgba(0,0,0,1.0);
+	border: 1px solid rgb(0,0,0);
 }
 
 .colorbar_wrapper img {
 	padding: 0;
 	margin: 0;
 	vertical-align: text-top;
+}
+
+.dropdown {
+	white-space: nowrap;
+}
+
+.dropdown.closed::before {
+	content: "\25B8\00A0"; /* Trhiange pointing right */
+}
+
+.dropdown.open::before {
+	content: "\25BE\00A0"; /* Triangle pointing down */
 }

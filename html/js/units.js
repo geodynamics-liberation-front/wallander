@@ -9,7 +9,7 @@ function PrimaryUnit(name,symbol,dimension,unit_manager)
 	this.tosi=this.fromsi=function(amt) { return amt }
 }
 
-UNIT_RE=/(\d*\.?\d*e?[+-]?\d*)([a-zA-Zµ]+)\^?(-?\d+)?/
+UNIT_RE=/(\d*\.?\d*(?:e[+-]?\d+)?)([^^]+)\^?(-?\d+)?/
 function DerivedUnit(name,symbol,base_units,unit_manager)
 {
 	this.name=name
@@ -54,7 +54,7 @@ function DerivedUnit(name,symbol,base_units,unit_manager)
 		}
 	}
 
-	this.dimension=this.dimensions.join(' ').replace(/,/g,'^')
+	this.dimension=this.dimensions.join(' ').replace(/,/g,'^').replace(/\^1\b/g,'')
 
 	this.tosi=function(amt) { return (amt||1)*conversion_factor; }
 	this.fromsi=function(amt) { return (amt||1)/conversion_factor; }
@@ -137,7 +137,6 @@ function Units()
 	this.add_primary_unit('ampere','A','I')
 	this.add_primary_unit('candela','c','C')
 	this.add_primary_unit('mole','mol','n')
-
 }
 
 Units.prototype.convert = function(from,to,amt)
@@ -160,7 +159,7 @@ Units.prototype.convert = function(from,to,amt)
 
 Units.prototype.add_primary_unit = function(name,symbol,dimension)
 {
-	this[symbol] = new PrimaryUnit(symbol,dimension)
+	this[symbol] = new PrimaryUnit(name,symbol,dimension)
 	this.add_to_dimensions(this[symbol])
 	return this[symbol]
 }
@@ -191,10 +190,41 @@ Units.prototype.add_to_dimensions = function(unit)
 
 Units.prototype.get_similar_units = function(unit)
 {
-	return this.by_dimension[unit.dimension]
+	if( typeof(unit)=='string' )
+	{
+		unit=this[unit]
+	}
+	var sim_units=this.by_dimension[unit.dimension]
+	sim_units.sort(this.sort_units)
+	return sim_units
+}
+
+Units.prototype.sort_units = function(a,b) 
+{
+	return a.tosi(1)-b.tosi(1) 
+}
+
+Units.prototype.unit_select = function(select,unit)
+{
+	var sim_units=this.get_similar_units(unit)
+	for( var i=0; i<sim_units.length; i++ )
+	{
+		var opt=document.createElement('option')
+		opt.value=sim_units[i].symbol
+		opt.innerHTML=sim_units[i].name
+		if( sim_units[i].symbol==unit )
+		{
+			opt.selected='selected'
+		}
+		select.appendChild(opt)
+	}
 }
 
 units=new Units()
+// Amounts
+units.add_unit('Each','ea','6.022140857e-23mol')
+units.add_unit('Percent','%','0.01ea')
+units.add_unit('Per-mille','‰','0.001ea')
 // Force
 units.add_unit('Newton','N','kg m s^-2')
 units.add_unit('pound','lbs','4.448221628254617N')
@@ -222,6 +252,8 @@ units.add_unit('minute','min','60s')
 units.add_unit('hour','hr','60min')
 units.add_unit('day','day','24hr')
 units.add_unit('year','yr','365.25day')
+units.add_unit('century','century','100yr')
+units.add_unit('millennium','kyr','1e3yr')
 units.add_unit('million years','Myr','1e6yr')
 // Velocity
 units.add_unit('meters per second','m s^-1','m s^-1')

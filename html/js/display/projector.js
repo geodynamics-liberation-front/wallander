@@ -2,7 +2,6 @@
  * projector.js
  */
 
-sec_in_ma=1e6*365.25*24*3600
 function new_button(onclick,name,controls)
 {
 	var btn=new Image();
@@ -12,13 +11,12 @@ function new_button(onclick,name,controls)
 	return btn;
 }
 
-function Projector(display,movie)
+function Projector(display)
 {
 	this.display=display;
-	display.projector=this;
 	// some listeners
 
-	this.movie=movie
+	this.movie=new Movie()
 	movie.projector=this
 	var self=this;
 	movie.addEventListener('load',function(e) { self.loaded(e); });
@@ -44,11 +42,6 @@ function Projector(display,movie)
 	this.btn_play=new_button(function(e){self.play();},"play",this.controls);
 	this.btn_ff=new_button(function(e){self.fastforward();},"ff",this.controls);
 	this.btn_end=new_button(function(e){self.end();},"end",this.controls);
-}
-
-Projector.prototype.updateStatus = function(name,value)
-{
-	this.display.setStatus(name,'<span class="label">'+name+':</span>'+value);
 }
 
 Projector.prototype.pause = function()
@@ -108,7 +101,7 @@ Projector.prototype.goto = function(frame)
 {
 	this.movie.frame=frame
 	this.movie.show()
-	this.display.setStatus('frame','<span class="label">frame:</span>'+frame)
+	this.display.status_mgr.set_status('frame',frame)
 }
 
 Projector.prototype.next = function()
@@ -117,11 +110,28 @@ Projector.prototype.next = function()
 	frame=this.movie.frame
 	if( this.playing && this.frameTime>0 ) 
 	{
-			this.actualFPS=Math.round(1000/(performance.now()-this.frameTime));
-			this.display.setStatus('fps','<span class="label">fps:</span>'+this.actualFPS+'/'+this.fps)
+		this.actualFPS=Math.round(1000/(performance.now()-this.frameTime));
+		this.display.status_mgr.set_status('fps',this.actualFPS+'/'+this.fps)
+	}
+	else
+	{
+		this.display.status_mgr.set_status('fps','-/'+this.fps)
 	}
 	this.frameTime=performance.now();
-	this.display.setStatus('frame','<span class="label">frame:</span>'+frame)
+
+	var fmt="%s"
+	var t=0
+	var unit=''	
+	if( this.display.data_field_mgr.reference_data_field )
+	{
+		var df=this.display.data_field_mgr.reference_data_field
+		t=df.time(frame)
+		fmt=df.time_format
+		unit=df.time_unit
+	}
+	time_status=sprintf(fmt+' <span class="label">%s</span>',t,unit)
+	this.display.status_mgr.set_status('time',time_status)
+	this.display.status_mgr.set_status('frame',frame)
 }
 
 Projector.prototype.loaded = function(e)
@@ -140,6 +150,7 @@ Projector.prototype.stopped = function(e)
 {
 	this.pause();
 	this.direction=1;
+	this.display.status_mgr.set_status('fps','-/'+this.fps)
 }
 
 

@@ -1,8 +1,8 @@
 /*
  * sprintf.js
  */
-
-(function(window) {
+;
+(function(win) {
     var re = {
         not_string: /[^s]/,
         number: /[def]/,
@@ -190,8 +190,8 @@
         exports.vsprintf = vsprintf
     }
     else {
-        window.sprintf = sprintf
-        window.vsprintf = vsprintf
+        win.sprintf = sprintf
+        win.vsprintf = vsprintf
 
         if (typeof define === "function" && define.amd) {
             define(function() {

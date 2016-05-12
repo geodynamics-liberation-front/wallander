@@ -582,6 +582,3 @@ function fit_circle(points)
 	}
 	
 }
-points=[];
-x=[0,.5,1,1.5,2,2.5,3]
-for(var n=0;n<x.length;n++) { points[n]={x:x[n],y:x[n]*x[n]}; }

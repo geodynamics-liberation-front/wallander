@@ -1,8 +1,89 @@
+// Whole-script strict mode syntax
+"use strict";
+var script_src=document.currentScript.src;
+var path=script_src.substring(0,script_src.lastIndexOf('/')+1)+'display/'
+
+function toggle_class(node,classname1,classname2)
+{
+	/* if classname1 exists */
+	if( node.className.search( re=new RegExp('\\b'+classname1+'\\b','g')) >-1 )
+	{
+		node.className=node.className.replace( re,'')
+		node.className=node.className+' '+classname2;
+		node.className=node.className.replace( /\s{2,}/g,' ')
+	}
+	/* if classname 2 exists */
+	else if( node.className.search( re=new RegExp('\\b'+classname2+'\\b','g')) >-1 )
+	{
+		node.className=node.className.replace( re,'')
+		node.className=node.className+' '+classname1;
+		node.className=node.className.replace( /\s{2,}/g,' ')
+	}
+}
+
+function add_class(node,classname)
+{
+	var cn=node.className;
+	if( cn.search( new RegExp('\\b'+classname+'\\b')) == -1 )
+	{
+		node.className=cn+' '+classname;
+	}
+}
+
+function remove_class(node,classname)
+{
+	node.className=node.className.replace( new RegExp('\\b'+classname+'\\b','g'),'')
+	node.className=node.className.replace( /\s{2,}/g,' ')
+}
+
+function has_class(node,classname)
+{
+	return node.className.search( new RegExp('\\b'+classname+'\\b')) > -1 
+}
+
+function add_stylesheet(stylesheet)
+{
+	var style=document.createElement('link');
+	style.rel="stylesheet";
+	style.href=path+"css/"+stylesheet;
+	document.head.appendChild(style);
+}
+
+function get_img_url(img)
+{
+	return path+"img/"+img;
+}
+
+function EventBroadcaster()
+{
+    this.listeners={}
+}
+
+EventBroadcaster.prototype.addEventListener = function(type,listener)
+{
+    if( !(type in this.listeners))
+    {   
+        this.listeners[type]=[];
+    }   
+    this.listeners[type].push(listener);
+}
+
+EventBroadcaster.prototype.dispatchEvent = function(event_name,e)
+{
+    if(event_name in this.listeners)
+    {   
+        for( var n=0; n<this.listeners[event_name].length; n++)
+        {
+            this.listeners[event_name][n].apply(this,[e]);
+        }
+    }   
+}
+
 /*
  * sprintf.js
  */
-
-(function(window) {
+;
+(function(win) {
     var re = {
         not_string: /[^s]/,
         number: /[def]/,
@@ -190,8 +271,8 @@
         exports.vsprintf = vsprintf
     }
     else {
-        window.sprintf = sprintf
-        window.vsprintf = vsprintf
+        win.sprintf = sprintf
+        win.vsprintf = vsprintf
 
         if (typeof define === "function" && define.amd) {
             define(function() {
@@ -207,59 +288,71 @@
  *  display.js
  *  Utility functions and main Display object
  */
-var script_src=document.currentScript.src;
-var path=script_src.substring(0,script_src.lastIndexOf('/')+1)+'display/'
 
-function toggle_class(node,classname1,classname2)
+/* 
+ * The status manager 
+ */
+function StatusManager(elem)
 {
-	/* if classname1 exists */
-	if( node.className.search( re=new RegExp('\\b'+classname1+'\\b','g')) >-1 )
-	{
-		node.className=node.className.replace( re,'')
-		node.className=node.className+' '+classname2;
-		node.className=node.className.replace( /\s{2,}/g,' ')
-	}
-	/* if classname 2 exists */
-	else if( node.className.search( re=new RegExp('\\b'+classname2+'\\b','g')) >-1 )
-	{
-		node.className=node.className.replace( re,'')
-		node.className=node.className+' '+classname1;
-		node.className=node.className.replace( /\s{2,}/g,' ')
-	}
+	this.elem=elem
+	this.status_bar=document.createElement('div')
+	this.status_editor=document.createElement('div')
+	this.elem.appendChild(this.status_bar)
+	this.elem.appendChild(this.status_editor)
+	this.dropdown=new Dropdown(this.status_bar,this.status_editor)
+	this.status_names=[]
+	this.statuses={}
 }
 
-function add_class(node,classname)
+StatusManager.prototype.set_visibility = function(name,visible)
 {
-	var cn=node.className;
-	if( cn.search( new RegExp('\\b'+classname+'\\b')) == -1 )
+	if( name in this.statuses )
 	{
-		node.className=cn+' '+classname;
+		this.statuses[name].style.display=visible?'':'none'
 	}
 }
-
-function remove_class(node,classname)
+StatusManager.prototype.add_status = function(name,display_name,short_name)
 {
-	node.className=node.className.replace( new RegExp('\\b'+classname+'\\b','g'),'')
-	node.className=node.className.replace( /\s{2,}/g,' ')
+	var self=this
+	this.status_names.push(name)
+	var status=document.createElement('span')
+	status.status_name=name
+	status.status_display_name=display_name
+	status.status_short_name=short_name
+	var label=document.createElement('span')
+	label.className='label'
+	label.innerHTML=(short_name || display_name || name) + ' : '
+	var value=document.createElement('span')
+	value.className='value'
+	status.appendChild(label)
+	status.appendChild(value)
+	status.value_span=value
+	status.label_span=label
+	this.statuses[name]=status
+	this.status_bar.appendChild(document.createTextNode('\n'))
+	this.status_bar.appendChild(status)
+
+	var status_editor=document.createElement('div')
+	var editor_label=document.createElement('label')
+	status.status_editor=status_editor
+	var cb=document.createElement('input')
+	cb.type='checkbox'
+	cb.checked=true
+	cb.addEventListener('change',function() { self.set_visibility(name,cb.checked) } )
+	editor_label.appendChild(cb)
+	editor_label.appendChild(document.createTextNode(display_name||name))
+	status_editor.appendChild(editor_label)
+	this.status_editor.appendChild(status_editor)
 }
 
-function has_class(node,classname)
+StatusManager.prototype.set_status = function(name,value)
 {
-	return node.className.search( new RegExp('\\b'+classname+'\\b')) == -1 
+	if( name in this.statuses )
+	{
+		this.statuses[name].value_span.innerHTML=value
+	}
 }
 
-function add_stylesheet(stylesheet)
-{
-	var style=document.createElement('link');
-	style.rel="stylesheet";
-	style.href=path+"css/"+stylesheet;
-	document.head.appendChild(style);
-}
-
-function get_img_url(img)
-{
-	return path+"img/"+img;
-}
 
 /*
  * The data field manager
@@ -268,38 +361,117 @@ function DataFieldManager(elem)
 {
 	this.elem=elem
 	this.reference_data_field=null;
+	this.data_field_paths=[]
 	this.data_fields={}
 }
 
 DataFieldManager.prototype.add_data_field = function(data_field)
 {
 	console.log('Adding data field: ')
-	console.log(data_field)
-	if( !('xy' in data_field) )
-	{
-		if( data_field.dimensions==1 )
-		{
-			data_field['x']=function(x) { return this.x0+this.dx*x }
-		}
-		else if ( data_field.dimensions==2 )
-		{
-			data_field['xy']=function(x,y) { return [this.x0+this.dx*x,this.y0+this.dy*y] }
-		}
-	}
-	if( !this.reference_data_field ) { this.reference_data_field=data_field }
+	console.log(data_field.path)
+
+	data_field._unit=data_field._unit
+	data_field.value=converted_value
+
+	data_field._dimension_unit=data_field.dimension_unit
+	data_field.xy=converted_xy
+
+	data_field._time=data_field.time
+	data_field._time_unit=data_field.time_unit
+	data_field.time=converted_time
+	data_field.visible=true
+	
+	this.data_field_paths.push(data_field)
 	this.data_fields[data_field.path]=data_field
 	movie.addDataField(data_field,'frame')
 
 	var display=document.getElementById('data_field_template').cloneNode(true)
+	new Dropdown(display.getElementsByClassName('data_field_bar')[0], display.getElementsByClassName('data_field_details')[0])
+	data_field.html_display=display
 	display.id=data_field.path
+	display.field_name=display.getElementsByClassName('data_field_name')[0]
+	display.field_name.innerHTML=data_field.display_name
+	display.field_value=display.getElementsByClassName('data_field_value')[0]
+	display.field_value.innerHTML='-'
+//	display.field_colormap=display.getElementsByClassName('data_field_colormap')[0]
+	
+	
 	this.elem.appendChild(display)
+
+	if( !this.reference_data_field ) 
+	{ 
+		this.set_reference_data_field(data_field)
+	}
+}
+
+DataFieldManager.prototype.updateXY = function(xy)
+{
+	for( var i=0; i<this.data_field_paths.length-1; i++)
+	{
+	}
+}
+
+DataFieldManager.prototype.updateValue = function(path,v)
+{
+	this.data_fields[path].field_value.innerHTML=v
+}
+	
+DataFieldManager.prototype.set_reference_data_field = function(data_field)
+{
+	// Set the reference data field
+	this.reference_data_field=data_field 
+	if( data_field )
+	{
+		// Set the time units and format
+		var time_status_editor=this.display.status_mgr.statuses['time'].status_editor
+		time_editor=new StatusEditor('time',this)
+		time_status_editor.appendChild(time_editor.html)
+
+		// Set the time units and format
+		var xy_status_editor=this.display.status_mgr.statuses['dimensional_xy'].status_editor
+		xy_editor=new StatusEditor('dimension',this)
+		xy_status_editor.appendChild(xy_editor.html)
+	}
 }
 
 DataFieldManager.prototype.del_data_field = function(data_field)
 {
 	console.log('Deleting data field: ')
 	console.log(data_field)
+	var df=this.data_fields[data_field]
 	delete this.data_fields[data_field]
+	this.data_field_paths.splice(this.data_field_paths.indexOf(data_field),1)
+	if( df===this.reference_data_field )
+	{
+		this.set_reference_data_field(this.data_field_paths[-1])
+	}
+}
+
+function converted_value(v)
+{
+	return 0
+}
+
+function converted_xy(x,y)
+{
+	x=this.dx*x + this.x0
+	y=this.dy*y + this.y0
+	if( this.dimension_unit!=this._dimension_unit )
+	{
+		x=units.convert(this._dimension_unit,this.dimension_unit,x)
+		y=units.convert(this._dimension_unit,this.dimension_unit,y)
+	}
+	return {x:x,y:y}
+}
+
+function converted_time(t)
+{
+	t=this._time[t]
+	if( this.time_unit!=this._time_unit )
+	{
+		t=units.convert(this._time_unit,this.time_unit,t)
+	}
+	return t
 }
 
 /*
@@ -368,7 +540,7 @@ DepictionManager.prototype.selectDepiction = function(obj)
 /*
  *  The display object
  */
-function Display(elem,depiction_mgr,data_field_mgr)
+function Display(elem,depiction_mgr,data_field_mgr,status_mgr)
 {
 	var self=this
 
@@ -384,6 +556,8 @@ function Display(elem,depiction_mgr,data_field_mgr)
 	Object.defineProperty(this,'reference_data_field',{ get: function() { return self.data_field_mgr.reference_data_field } } )
 	this.depiction_mgr=depiction_mgr;
 	this.depiction_mgr.display=this;
+	this.status_mgr=status_mgr
+	this.status_mgr.display=this
 	this.listeners={};
 
 	// The Current tool
@@ -437,40 +611,32 @@ Display.prototype.toString = function()
 	return "Display[canvas#"+this.canvas.id+"]";
 }
 
-Display.prototype.setStatus = function(name,value,formatter)
-{ 
-	var e=document.getElementById(name+'_status');
-	if (formatter!=undefined)
-	{
-		formatter(e,value);
-	}
-	else
-	{
-		e.innerHTML=value;
-	}
-}
-
 Display.prototype.updateXY = function(e)
 {
 	var self=this
+	// Update the XY locations
 	var xy=this.xy(e);
 	xy.x=Math.floor(xy.x)
 	xy.y=Math.floor(xy.y)
 	var fmt="%s"
-	var df_x="-"
-	var df_y="-"
+	var dfxy={x:'-',y:'-'}
 	var unit=''
 	if( this.data_field_mgr.reference_data_field )
 	{
 		var df=this.data_field_mgr.reference_data_field
+		dfxy=df.xy(xy.x,xy.y)
 		fmt=df.dimension_format
 		unit=df.dimension_unit
-		df_x=df.x0+xy.x*df.dx
-		df_y=df.y0+xy.y*df.dy
 	}
 	
-	var status_string=sprintf('<span class="label">XY:</span>(%d,%d) / ('+fmt+' <span class="label">%s</span>,'+fmt+' <span class="label">%s</span>)',xy.x,xy.y,df_x,unit,df_y,unit)
-	this.setStatus('xy',status_string)
+	this.status_mgr.set_status('xy','('+xy.x+','+xy.y+')')
+
+	var status_string=sprintf('('+fmt+' <span class="label">%s</span>,'+fmt+' <span class="label">%s</span>)',dfxy.x,unit,dfxy.y,unit)
+	this.status_mgr.set_status('dimensional_xy',status_string)
+	if( this.projector && !this.projector.playing )
+	{
+		this.data_field_mgr.updateXY(xy)
+	}
 }
 
 
@@ -599,7 +765,6 @@ Display.prototype.redraw = function()
  * projector.js
  */
 
-sec_in_ma=1e6*365.25*24*3600
 function new_button(onclick,name,controls)
 {
 	var btn=new Image();
@@ -641,11 +806,6 @@ function Projector(display,movie)
 	this.btn_play=new_button(function(e){self.play();},"play",this.controls);
 	this.btn_ff=new_button(function(e){self.fastforward();},"ff",this.controls);
 	this.btn_end=new_button(function(e){self.end();},"end",this.controls);
-}
-
-Projector.prototype.updateStatus = function(name,value)
-{
-	this.display.setStatus(name,'<span class="label">'+name+':</span>'+value);
 }
 
 Projector.prototype.pause = function()
@@ -705,7 +865,7 @@ Projector.prototype.goto = function(frame)
 {
 	this.movie.frame=frame
 	this.movie.show()
-	this.display.setStatus('frame','<span class="label">frame:</span>'+frame)
+	this.display.status_mgr.set_status('frame',frame)
 }
 
 Projector.prototype.next = function()
@@ -714,11 +874,28 @@ Projector.prototype.next = function()
 	frame=this.movie.frame
 	if( this.playing && this.frameTime>0 ) 
 	{
-			this.actualFPS=Math.round(1000/(performance.now()-this.frameTime));
-			this.display.setStatus('fps','<span class="label">fps:</span>'+this.actualFPS+'/'+this.fps)
+		this.actualFPS=Math.round(1000/(performance.now()-this.frameTime));
+		this.display.status_mgr.set_status('fps',this.actualFPS+'/'+this.fps)
+	}
+	else
+	{
+		this.display.status_mgr.set_status('fps','-/'+this.fps)
 	}
 	this.frameTime=performance.now();
-	this.display.setStatus('frame','<span class="label">frame:</span>'+frame)
+
+	var fmt="%s"
+	var t=0
+	var unit=''	
+	if( this.display.data_field_mgr.reference_data_field )
+	{
+		var df=this.display.data_field_mgr.reference_data_field
+		t=df.time(frame)
+		fmt=df.time_format
+		unit=df.time_unit
+	}
+	time_status=sprintf(fmt+' <span class="label">%s</span>',t,unit)
+	this.display.status_mgr.set_status('time',time_status)
+	this.display.status_mgr.set_status('frame',frame)
 }
 
 Projector.prototype.loaded = function(e)
@@ -737,6 +914,7 @@ Projector.prototype.stopped = function(e)
 {
 	this.pause();
 	this.direction=1;
+	this.display.status_mgr.set_status('fps','-/'+this.fps)
 }
 
 
@@ -1089,7 +1267,7 @@ Movie.prototype.addDataField = function(data_field,frame_type)
 	var data_field_name=data_field.path+":"+frame_type
 	this.data_fields[data_field_name]=df
 	this.z_order.push(data_field_name)
-	this.last=Math.max(this.last,data_field.time.length-1)
+	this.last=Math.max(this.last,data_field._time.length-1)
 	var self=this;
 	df.img.addEventListener('load', function(e) { self.loaded(e); });
 	this.show()
@@ -1772,6 +1950,3 @@ function fit_circle(points)
 	}
 	
 }
-points=[];
-x=[0,.5,1,1.5,2,2.5,3]
-for(var n=0;n<x.length;n++) { points[n]={x:x[n],y:x[n]*x[n]}; }

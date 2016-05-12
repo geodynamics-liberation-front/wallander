@@ -17,7 +17,7 @@ LOG=logging.getLogger(__name__)
 # Has the following capture groups: name, min, max, under color, over color, bad color
 regex={
     'letters_numbers': '[a-zA-Z0-9_]*',
-    'float': '[+-]?\d+\.?\d*e?-?\d+',
+    'float': '[+-]?\d+(?:\.\d*)?(?:e[+-]?\d+)?',
     'hex': '[a-fA-F0-9]*' }
 
 CM_RE=re.compile('(%(letters_numbers)s)-?(%(float)s)?-?(%(float)s)?-?(%(hex)s)?-?(%(hex)s)?-?(%(hex)s)?'%regex)

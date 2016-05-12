@@ -52,28 +52,4 @@ function get_img_url(img)
 	return path+"img/"+img;
 }
 
-function EventBroadcaster()
-{
-    this.listeners={}
-}
-
-EventBroadcaster.prototype.addEventListener = function(type,listener)
-{
-    if( !(type in this.listeners))
-    {   
-        this.listeners[type]=[];
-    }   
-    this.listeners[type].push(listener);
-}
-
-EventBroadcaster.prototype.dispatchEvent = function(event_name,e)
-{
-    if(event_name in this.listeners)
-    {   
-        for( var n=0; n<this.listeners[event_name].length; n++)
-        {
-            this.listeners[event_name][n].apply(this,[e]);
-        }
-    }   
-}
 

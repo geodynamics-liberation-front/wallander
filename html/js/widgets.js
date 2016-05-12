@@ -1,5 +1,30 @@
 "use strict";
 
+function EventBroadcaster()
+{
+    this.listeners={}
+}
+
+EventBroadcaster.prototype.addEventListener = function(type,listener)
+{
+    if( !(type in this.listeners))
+    {   
+        this.listeners[type]=[];
+    }   
+    this.listeners[type].push(listener);
+}
+
+EventBroadcaster.prototype.dispatchEvent = function(event_name,e)
+{
+    if(event_name in this.listeners)
+    {   
+        for( var n=0; n<this.listeners[event_name].length; n++)
+        {
+            this.listeners[event_name][n].apply(this,[e]);
+        }
+    }   
+}
+
 function Dropdown(button_elem,display_elem)
 {
 	var self=this
@@ -33,7 +58,7 @@ Dropdown.prototype.click = function ()
 
 var regex={
 	letters_numbers: '[a-zA-Z0-9_]*',
-	float: '[+-]?\\d+\\.?\\d*e?-?\\d+',
+	float: '[+-]?\\d+(?:\\.?\\d*)?(?:e[+-]?\\d+)?',
 	hex: '[a-fA-F0-9]*' }
 
 var CM_RE=new RegExp('('+regex.letters_numbers+')-?('+regex.float+')?-?('+regex.float+')?-?('+regex.hex+')?-?('+regex.hex+')?-?('+regex.hex+')?')
@@ -87,6 +112,7 @@ function ColormapSelector(input,url)
 	this.colormap_url=url
 	this.refresh()
 }
+ColormapSelector.prototype = new EventBroadcaster
 
 ColormapSelector.prototype.refresh = function()
 {
@@ -118,10 +144,13 @@ ColormapSelector.prototype.close = function()
 
 ColormapSelector.prototype.select = function(colormap)
 {
+	var e={old_value:this.input.value}
 	this.input.value=colormap
+	e.value=colormap
 	this.value=colormap
 	this.selected_colormap.src=config['frame_prefix']+'_colorbar/'+colormap+'.png'
 	this.close()
+	this.dispatchEvent('change',e)
 }
 
 ColormapSelector.prototype.populate = function(colormaps)

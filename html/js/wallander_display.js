@@ -38,8 +38,39 @@ DataFieldManager.prototype.addDataField = function(data_field)
 	df_display.field_name.innerHTML=data_field.display_name
 	df_display.field_value=df_display.getElementsByClassName('data_field_value')[0]
 	df_display.field_value.innerHTML='-'
-//	display.field_colormap=display.getElementsByClassName('data_field_colormap')[0]
-	
+
+	var unit_select=df_display.getElementsByClassName('data_field_unit')[0]
+	units.unit_select(unit_select,data_field.unit)
+	unit_select.addEventListener('change',function(e) {data_field['unit']=e.target.value})
+
+	var format_input=df_display.getElementsByClassName('data_field_format')[0]
+	format_input.value=data_field.format
+	format_input.addEventListener('change',function(e) {data_field['format']=e.target.value})
+
+	var renderer=parse_renderer(data_field.renderer)
+	var opt_cmap=document.createElement('option')
+	opt_cmap.value=renderer.colormap
+	var cmap_select=df_display.getElementsByClassName('data_field_colormap')[0]
+	cmap_select.appendChild(opt_cmap)
+	df_display.cmap=new ColormapSelector(cmap_select,config['frame_prefix']+'/_colormaps')
+	//cs.addEventListener('change',function(e) { data_field.colormap
+
+	// min/max
+	df_display.field_min=df_display.getElementsByClassName('data_field_min')[0]
+	df_display.field_min=renderer.min
+	df_display.field_max=df_display.getElementsByClassName('data_field_max')[0]
+	df_display.field_max=renderer.max
+
+	// under/over
+	df_display.field_under=df_display.getElementsByClassName('data_field_under')[0]
+	df_display.field_under=renderer.under
+	df_display.field_over=df_display.getElementsByClassName('data_field_over')[0]
+	df_display.field_over=renderer.over
+
+	// log scape
+	df_display.field_log=df_display.getElementsByClassName('data_field_log')[0]
+	df_display.field_log.checked=renderer.log?'checked':''
+
 	this.elem.appendChild(df_display)
 
 	if( !this.reference_data_field ) 
@@ -52,22 +83,22 @@ DataFieldManager.prototype.updateXY = function(t,x,y)
 {
 	var df=null;
 	var self=this
-	for( var i=0; i<this.data_field_paths.length; i++)
-	{
-		df=this.data_fields[this.data_field_paths[i]]
-		if( df.visible && 
-            t>-1 && t<df.frame_count &&
-            x>-1 && x<df.nx &&
-            y>-1 && y<df.ny )
+		for( var i=0; i<this.data_field_paths.length; i++)
 		{
-			// The data array are indexed by frame,row,column
-			jsonCall(df.path+'/'+t+','+y+','+x,self.updateDisplayValue,df)
+			df=this.data_fields[this.data_field_paths[i]]
+			if( df.visible && 
+					t>-1 && t<df.frame_count &&
+					x>-1 && x<df.nx &&
+					y>-1 && y<df.ny )
+			{
+				// The data array are indexed by frame,row,column
+				jsonCall(df.path+'/'+t+','+y+','+x,self.updateDisplayValue,df)
+			}
+			else
+			{
+				df.html_display.field_value.innerHTML="-"
+			}
 		}
-		else
-		{
-			df.html_display.field_value.innerHTML="-"
-		}
-	}
 }
 
 DataFieldManager.prototype.updateDisplayValue = function(v,df)
@@ -78,23 +109,23 @@ DataFieldManager.prototype.updateDisplayValue = function(v,df)
 	}
 	df.html_display.field_value.innerHTML=sprintf(df.format,v)+"<span class='label'>"+df.unit+"</span>"
 }
-	
+
 DataFieldManager.prototype.setReferenceDataField = function(data_field)
 {
 	// Set the reference data field
 	this.reference_data_field=data_field 
-	if( data_field )
-	{
-		// Set the time units and format
-		var time_status_editor=this.display.status_mgr.statuses['time'].status_editor
-		time_editor=new StatusEditor('time',this)
-		time_status_editor.appendChild(time_editor.html)
+		if( data_field )
+		{
+			// Set the time units and format
+			var time_status_editor=this.display.status_mgr.statuses['time'].status_editor
+				time_editor=new StatusEditor('time',this)
+				time_status_editor.appendChild(time_editor.html)
 
-		// Set the time units and format
-		var xy_status_editor=this.display.status_mgr.statuses['dimensional_xy'].status_editor
-		xy_editor=new StatusEditor('dimension',this)
-		xy_status_editor.appendChild(xy_editor.html)
-	}
+				// Set the time units and format
+				var xy_status_editor=this.display.status_mgr.statuses['dimensional_xy'].status_editor
+				xy_editor=new StatusEditor('dimension',this)
+				xy_status_editor.appendChild(xy_editor.html)
+		}
 }
 
 DataFieldManager.prototype.removeDataField = function(data_field)
@@ -1998,28 +2029,4 @@ function get_img_url(img)
 	return path+"img/"+img;
 }
 
-function EventBroadcaster()
-{
-    this.listeners={}
-}
-
-EventBroadcaster.prototype.addEventListener = function(type,listener)
-{
-    if( !(type in this.listeners))
-    {   
-        this.listeners[type]=[];
-    }   
-    this.listeners[type].push(listener);
-}
-
-EventBroadcaster.prototype.dispatchEvent = function(event_name,e)
-{
-    if(event_name in this.listeners)
-    {   
-        for( var n=0; n<this.listeners[event_name].length; n++)
-        {
-            this.listeners[event_name][n].apply(this,[e]);
-        }
-    }   
-}
 

@@ -52,7 +52,7 @@ class StagYYDataSource(HDF.H5DataSource):
 
         return files
 
-def create_color_maps():
+def create_colormaps():
     LOG.debug('Creating lithosphere colormaps')
     viz.litho_colormap(0,1650,1550,10)
     viz.alpha_colormap('alpha_green',0.0,1.0,0.0)
@@ -92,4 +92,4 @@ class StagYYDataField(HDF.H5DataField):
         self.display_name,self.icon=get_icon(filename)
 
 DATA_PROVIDER=StagYYDataProvider()
-create_color_maps()
+create_colormaps()

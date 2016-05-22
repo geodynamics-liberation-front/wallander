@@ -56,8 +56,8 @@ function DerivedUnit(name,symbol,base_units,unit_manager)
 
 	this.dimension=this.dimensions.join(' ').replace(/,/g,'^').replace(/\^1\b/g,'')
 
-	this.tosi=function(amt) { return (amt||1)*conversion_factor; }
-	this.fromsi=function(amt) { return (amt||1)/conversion_factor; }
+	this.tosi=function(amt) { return ((amt==undefined)?1:amt)*conversion_factor; }
+	this.fromsi=function(amt) { return ((amt==undefined)?1:amt)/conversion_factor; }
 }
 
 function FunctionUnit(name,symbol,tosi,fromsi,dimensions)
@@ -141,7 +141,7 @@ function Units()
 
 Units.prototype.convert = function(from,to,amt)
 {
-	var amt=amt==undefined?1:amt
+	amt=(amt==undefined)?1:amt
 	var unit_from=this[from]
 	if(!unit_from)
 	{

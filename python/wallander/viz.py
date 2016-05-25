@@ -4,6 +4,7 @@ import numpy as np
 import re
 import response
 import Queue
+import contour
 from matplotlib.pylab import Normalize, register_cmap, colormaps, get_cmap
 from matplotlib.colors import LinearSegmentedColormap 
 from threading import Thread
@@ -16,16 +17,17 @@ LOG=logging.getLogger(__name__)
 # Colormap Regular Expression
 # Has the following capture groups: name, min, max, under color, over color, bad color
 regex={
-    'letters_numbers': '[a-zA-Z0-9_]*',
+    'letters_numbers': '[a-zA-Z0-9\-]*',
     'float': '[+-]?\d+(?:\.\d*)?(?:e[+-]?\d+)?',
     'hex': '[a-fA-F0-9]*' }
 
-CM_RE=re.compile('(%(letters_numbers)s)-?(%(float)s)?-?(%(float)s)?-?(%(hex)s)?-?(%(hex)s)?-?(%(hex)s)?'%regex)
+# colormap_min_max_under_over_bar
+CM_RE=re.compile('(%(letters_numbers)s)_?(%(float)s)?_?(%(float)s)?_?(%(hex)s)?_?(%(hex)s)?_?(%(hex)s)?'%regex)
+# field.{colormap|contours}.frame.extension
 FRAME_RE=re.compile('([a-zA-Z0-9]+)\.(.*)\.(\d+)\.([a-z]+)')
 
 RENDERERS={}
 
-#COLORBAR_ARRAY=np.array(range(0,256)*7+( [-1000]*96+[1000]*96+[np.nan]*64 )*3).reshape(10,256)
 COLORBAR_ARRAY=np.tile(np.linspace(0,255,256),(10,1))
 COLORBAR_ARRAY_UNDER=np.tile(np.concatenate((-1*np.ones(10),np.linspace(0,255,246))),(10,1))
 COLORBAR_ARRAY_OVER= np.tile(np.concatenate((np.linspace(0,255,246),256*np.ones(10))),(10,1))
@@ -49,6 +51,10 @@ class FrameDataProvider(object):
             LOG.debug("Frame: '%s'",image)
             m=FRAME_RE.match(image)
             if m:
+                image_dir=os.path.dirname(image_file)
+                if not os.path.exists(image_dir):
+                    os.makedirs(image_dir)
+
                 field,renderer_string,frame_number,extension=m.groups()
                 frame_number=int(frame_number)
                 LOG.debug("Field: %s, Frame Number: %d, Renderer: %s, Extension %s",field,frame_number,renderer_string,extension)
@@ -58,9 +64,6 @@ class FrameDataProvider(object):
                 LOG.debug("Data provider: %s",str(dp))
                 frame=dp.call(environ,start_response,path)
                 renderer=get_renderer(renderer_string)
-                image_dir=os.path.dirname(image_file)
-                if not os.path.exists(image_dir):
-                    os.makedirs(image_dir)
                 renderer.write(frame,image_file)
                 return response.respond_file(image_file,environ,start_response)
             else:
@@ -86,11 +89,49 @@ class FrameDataProvider(object):
         renderer.write(array,image_file)
         return response.respond_file(image_file,environ,start_response)
 
-class ArrowDataProvider(object):
+class ContourDataProvider(object):
     def __call__(self,environ,start_response,path):
+        LOG.debug('Path: %s',path)
+        image_file=os.path.join(configuration['frame_dir'],*path)
+        LOG.debug("Image file: %s",image_file)
+        if len(path)>0 and path[0][0:1]=='_':
+            try:
+                f=getattr(self,path[0])
+                return f(environ,start_response,path[1:])
+            except AttributeError:
+                return response.respond_not_found(start_response)
+        else:
+            data_provider=path.pop(0)
+            image=path.pop()
+            LOG.debug("Data provider name: '%s'",data_provider)
+            LOG.debug("Frame: '%s'",image)
+            m=FRAME_RE.match(image)
+            if m:
+                image_dir=os.path.dirname(image_file)
+                if not os.path.exists(image_dir):
+                    os.makedirs(image_dir)
+
+                field,contour_string,frame_number,extension=m.groups()
+                frame_number=int(frame_number)
+                contours=[float(c) for c in contour_string.split('_')]
+                LOG.debug("Field: %s, Frame Number: %d, Contour: %s, Extension %s",field,frame_number,contour_string,extension)
+
+                path.append(field)
+                path.append(str(frame_number))
+                dp=configuration['data_providers'].get(data_provider)
+                LOG.debug("Data provider: %s",str(dp))
+                frame=dp.call(environ,start_response,path)
+
+                contour.write_contour(frame,contours,image_file)
+                return response.respond_file(image_file,environ,start_response)
+            else:
+                LOG.warning('%s does not match regular expression',image)
+                return response.respond_not_found(start_response)
+
+    def _render_all(self,environ,start_Response,path):
         pass
 
-class ContourDataProvider(object):
+class ArrowDataProvider(object):
     def __call__(self,environ,start_response,path):
         pass
 
@@ -116,7 +157,7 @@ class Renderer(object):
         if m!=None:
             LOG.debug("%s -> %s",name,repr(m.groups()))
             cmap,min_val,max_val,under_color,over_color,bad_color=m.groups()
-            if cmap.endswith('_log'):
+            if cmap.endswith('-log'):
                 self.filter=np.log10
                 self.log=True
                 cmap=cmap[:-4]
@@ -203,6 +244,7 @@ class Renderer(object):
         a = self._colorbar_array(colors,width).T
         self.write(a,out)
 
+#TODO: move this out of viz to the StagYY data provider
 def litho_colormap(min,max,boundary=1600.0,width=20):
     if boundary<min or boundary>max:
         bndry=max-50
@@ -228,7 +270,7 @@ def litho_colormap(min,max,boundary=1600.0,width=20):
                        (((width-1)*b+1)/width, 0.0 , 0.0),
                        (                  1.0, 0.0 , 0.0))}
 
-    cm=LinearSegmentedColormap('lithosphere_%d'%boundary, cdict)
+    cm=LinearSegmentedColormap('Lithosphere%d'%boundary, cdict)
     register_cmap(cmap=cm)
     return cm
 

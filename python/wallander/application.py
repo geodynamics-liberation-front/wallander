@@ -3,13 +3,15 @@ LOG = logging.getLogger(__name__)
 
 import traceback
 import mimetypes
+import posixpath
 from . import response
 
 from config import configuration
 # add the frame provider to the handlers
 
 from data_providers import HTMLDataProvider
-from viz import FrameDataProvider
+from viz import FrameDataProvider,ContourDataProvider
+from serialize import SerializationDataProvider
 
 mimetypes.add_type('text/plain','')
 mimetypes.add_type('image/svg+xml','.svg')
@@ -30,13 +32,18 @@ DEFAULT_DATA_PROVIDER=HTMLDataProvider()
 
 # Frame data provider
 configuration['data_providers'][configuration['frame_prefix']]=FrameDataProvider()
+# Frame data provider
+configuration['data_providers'][configuration['contour_prefix']]=ContourDataProvider()
+# Serialization data provider
+configuration['data_providers'][configuration['serialization_prefix']]=SerializationDataProvider()
 
 class Application(object):
     def __call__(self,environ,start_response):
         try:
             LOG.debug("REQUEST_URI: %s",environ['REQUEST_URI'])
-            uri = environ['REQUEST_URI'] if len(environ['PATH_INFO'])==0 else environ['PATH_INFO']
-            path=[p for p in uri.split('/') if p!='']
+            LOG.debug("PATH_INFO: %s",environ['PATH_INFO'])
+            path=[p for p in posixpath.normpath(environ['REQUEST_URI'] if len(environ['PATH_INFO'])==0 else environ['PATH_INFO']).split('/') if p!='']
+            LOG.debug("path: %s",str(path))
             data_provider=path.pop(0) if len(path)>0 else ''
             LOG.debug("Data provider name: '%s'",data_provider)
             dp=configuration['data_providers'].get(data_provider)

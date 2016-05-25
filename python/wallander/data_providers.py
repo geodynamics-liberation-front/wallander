@@ -97,7 +97,7 @@ class HTMLDataProvider(object):
         LOG.debug("path: %s",str(path))
         file=os.path.realpath(os.path.join(self.html_dir,*path))
         LOG.debug("file: '%s'",file)
-        if not file.startswith(self.html_dir) or not os.path.exists(file):
+        if not os.path.exists(file):
             response.respond_not_found(start_response)
         if os.path.isdir(file):
             ndx_file=None
@@ -116,29 +116,29 @@ class HTMLDataProvider(object):
             file=ndx_file
         return response.respond_file(file,environ,start_response)
 
-class DataSource(object):
-    def __init__(self,file,data_provider):
-        self.file=file
-        self.data_provider=data_provider
-
-    def to_json(self):
-        return {
-            "type": "folder",
-            "name": os.path.basename(self.file),
-            "children": self.children(),
-            "icon": os.path.join(self.data_provider.__module__,wallander.ICONS,'folder.svg')
-        }
-
-    def children(self):
-        files=[]
-        for f in os.listdir(self.file):
-            if not f.startswith('_'):
-                type=None
-                if os.path.isdir(os.path.join(self.file,f)):
-                    type = 'folder'
-                    icon=os.path.join(self.data_provider.__module__,wallander.ICONS,'folder.svg')
-                else:
-                    type = 'file'
-                    icon=os.path.join(self.data_provider.__module__,wallander.ICONS,'file.svg')
-                files.append({'name':f,'type':type,'icon':icon,'data_provider':self.data_provider.__module__})
-        return files
+#class DataSource(object):
+#    def __init__(self,file,data_provider):
+#        self.file=file
+#        self.data_provider=data_provider
+#
+#    def to_json(self):
+#        return {
+#            "type": "folder",
+#            "name": os.path.basename(self.file),
+#            "children": self.children(),
+#            "icon": os.path.join(self.data_provider.__module__,wallander.ICONS,'folder.svg')
+#        }
+#
+#    def children(self):
+#        files=[]
+#        for f in os.listdir(self.file):
+#            if not f.startswith('_'):
+#                type=None
+#                if os.path.isdir(os.path.join(self.file,f)):
+#                    type = 'folder'
+#                    icon=os.path.join(self.data_provider.__module__,wallander.ICONS,'folder.svg')
+#                else:
+#                    type = 'file'
+#                    icon=os.path.join(self.data_provider.__module__,wallander.ICONS,'file.svg')
+#                files.append({'name':f,'type':type,'icon':icon,'data_provider':self.data_provider.__module__})
+#        return files

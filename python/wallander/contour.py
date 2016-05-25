@@ -5,7 +5,8 @@ lines={
     0: lambda i,j,a,b,c,d,v: (i+1.,j+itp(a,b,v)),
     1: lambda i,j,a,b,c,d,v: (i+itp(c,b,v),j+1.),
     2: lambda i,j,a,b,c,d,v: (float(i),j+itp(d,c,v)),
-    3: lambda i,j,a,b,c,d,v: (i+itp(d,a,v),float(j))}
+    3: lambda i,j,a,b,c,d,v: (i+itp(d,a,v),float(j))
+    }
     
 def itp(x1,x2,y):   
     """
@@ -67,16 +68,12 @@ def contour(data,values):
             b=float(data[i+1,j+1])
             c=float(data[i  ,j+1])
             d=float(data[i  ,j  ])
-#            d,c,a,b=data[i:i+2,j:j+2].reshape((4,))
             line=lambda s: lines[s](i,j,a,b,c,d,v)
             for v in values:
                 # get the dictionary of line segments
                 segments=contours[v]
                 # calculate the intersection type 0 to 15
                 t=(a<v)+2*(b<v)+4*(c<v)+8*(d<v)
-#                t=((cell<v)*M).sum()
-#                t=(a<v)+((b<v)<<1)+((c<v)<<2)+((d<v)<<3)
-#                t=(v>a)+(v>b)<<1+(v>c)<<2+(v>d)<<3
 
                 # the comments show the nodes as either less than (-) or greater than or equal (+)
 
@@ -154,8 +151,21 @@ def plot(contours):
             y,x=zip(*line)
             plt.plot(x,y)
 
+def write_contour(data,contours,filename):
+    height,width=data.shape
+    with open(filename,'w') as f:
+        f.write(svg(height,width,simplify(contour(data,contours))))
+
 def svg(height,width,contours):
-    svg_tmpl="""<svg height="%d" width="%d">
+    svg_tmpl="""<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Wallander-->
+<svg 
+height="%d" 
+width="%d"
+version="1.1"
+xmlns:svg="http://www.w3.org/2000/svg"
+xmlns="http://www.w3.org/2000/svg"
+>
 %s
    Sorry, your browser does not support inline SVG.
 </svg>
@@ -164,5 +174,5 @@ def svg(height,width,contours):
     for c,lines in contours.items():
         for n,line in enumerate(lines.lines):
             d="M "+" ".join(["%f %f"%(col,row) for row,col in line])
-            paths.append('<path id="contour_%f.%d" d="%s" style="fill:none; stroke: #000000; stroke-linejoin:round"/>'%(c,n,d))
+            paths.append('<path id="contour_%f_%d" d="%s"/>'%(c,n,d))
     return svg_tmpl%(height,width,"\n   ".join(paths))

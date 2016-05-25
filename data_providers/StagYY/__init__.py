@@ -55,7 +55,7 @@ class StagYYDataSource(HDF.H5DataSource):
 def create_colormaps():
     LOG.debug('Creating lithosphere colormaps')
     viz.litho_colormap(0,1650,1550,10)
-    viz.alpha_colormap('alpha_green',0.0,1.0,0.0)
+    viz.alpha_colormap('AlphaGreen',0.0,1.0,0.0)
 
 STAGYY_DISPLAY_NAMES={
     'age': 'Age',

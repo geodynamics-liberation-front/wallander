@@ -1,0 +1,38 @@
+<html>
+<head>
+	<script src="/js/widgets.js"></script>
+
+<script>
+var cp
+function init()
+{
+	var input=document.getElementById('color_picker')
+	cp=new ColorPicker(input)
+	cp.addEventListener('change',logChange)
+}
+
+function logChange(e)
+{
+	console.log("Color Picker Change:")
+	console.log(e)
+}
+
+</script>
+<style>
+body 
+{
+	background-color: black;
+	color: white;
+}
+
+</style>
+</head>
+<body onload="init()">
+This is a test:<input id="color_picker" style="background-color: #000000;"></input> This is only a test:
+
+<p>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at lorem sed elit convallis lobortis. Donec non sapien imperdiet, fringilla metus sit amet, pharetra massa. Phasellus nunc ante, iaculis sit amet sagittis quis, tincidunt id nibh. Quisque varius ac ligula quis varius. Proin ut convallis diam, id pellentesque lacus. Proin orci lorem, rhoncus in erat sollicitudin, congue commodo nulla. Nulla facilisi. Integer ornare facilisis mollis. Aenean et elit volutpat, blandit magna non, condimentum purus. Nulla venenatis enim justo, commodo pellentesque mauris finibus mattis. Aenean nec nulla id tellus malesuada luctus. Donec mauris lorem, malesuada nec ornare pellentesque, ornare ut enim. Suspendisse venenatis arcu mauris, ut ornare mauris blandit eget. Cras vel dui eu augue interdum tristique. Morbi diam orci, tincidunt et tortor at, fermentum mattis augue.
+</p>
+</body>
+</html>
+

@@ -26,13 +26,19 @@ configuration['dir']=os.path.abspath(os.path.join(os.path.dirname(__file__),'..'
 configuration['html_dir']=os.path.join(configuration['dir'],'html')
 configuration['index_files']=['index.html','index.htm']
 configuration['data_dir']=os.path.join(configuration['dir'],'data')
-configuration['frame_dir']=os.path.join(configuration['data_dir'],'_frames')
-configuration['frame_prefix']='frames'
 configuration['log_dir']=os.path.join(configuration['dir'],'log')
 configuration['data_provider_dir']=os.path.join(configuration['dir'],'data_providers')
 configuration['data_provider_names']=[]
 configuration['data_providers']={}
 configuration['log_handlers']=[]
+# builtin data provider directories
+configuration['frame_dir']=os.path.join(configuration['data_dir'],'_frames')
+configuration['serialization_dir']=os.path.join(configuration['data_dir'],'_serializations')
+# url prefixes
+configuration['app_prefix']='wallander'
+configuration['frame_prefix']='frames'
+configuration['contour_prefix']='contours'
+configuration['serialization_prefix']='s'
 
 # Configures the loggers
 def config_logging():

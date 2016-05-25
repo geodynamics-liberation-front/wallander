@@ -14,6 +14,7 @@ class TimedCache(collections.MutableMapping):
         self.timeout=timeout
         self.cache_invalidation_thread=cache_invalidation_thread or CacheInvalidationThread(timeout)
         self.cache_invalidation_thread.add(self)
+# Race condition here ... TODO: fixit
         if not self.cache_invalidation_thread.running:
                self.cache_invalidation_thread.daemon=True
                self.cache_invalidation_thread.start()

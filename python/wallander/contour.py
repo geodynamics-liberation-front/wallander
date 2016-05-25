@@ -158,7 +158,7 @@ def write_contour(data,contours,filename):
     with open(filename,'w') as f:
         f.write(svg(height,width,simplify(contour(data,contours))))
 
-def svg(height,width,contours):
+def svg(height,width,contours,format='%0.2f'):
     svg_tmpl="""<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Wallander-->
 <svg 
@@ -175,6 +175,6 @@ xmlns="http://www.w3.org/2000/svg"
     paths=[]
     for c,lines in contours.items():
         for n,line in enumerate(lines.lines):
-            d="M "+" ".join(["%f %f"%(col,row) for row,col in line])
+            d="M "+" ".join([(format+" "+format)%(col,row) for row,col in line])
             paths.append('<path id="contour_%(value)s_%(segment)d" class="contour_%(value)s segment_%(segment)d" d="%(line)s"/>'%{'value':c,'segment':n,'line':d})
     return svg_tmpl%(height,width,"\n   ".join(paths))

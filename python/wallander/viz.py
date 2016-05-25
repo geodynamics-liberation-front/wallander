@@ -113,7 +113,7 @@ class ContourDataProvider(object):
 
                 field,contour_string,frame_number,extension=m.groups()
                 frame_number=int(frame_number)
-                contours=[float(c) for c in contour_string.split('_')]
+                contours=contour_string.split('_')
                 LOG.debug("Field: %s, Frame Number: %d, Contour: %s, Extension %s",field,frame_number,contour_string,extension)
 
                 path.append(field)

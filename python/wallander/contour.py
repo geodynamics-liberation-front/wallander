@@ -72,6 +72,8 @@ def contour(data,values):
             for v in values:
                 # get the dictionary of line segments
                 segments=contours[v]
+                # convert to a float
+                v=float(v)
                 # calculate the intersection type 0 to 15
                 t=(a<v)+2*(b<v)+4*(c<v)+8*(d<v)
 
@@ -166,6 +168,7 @@ version="1.1"
 xmlns:svg="http://www.w3.org/2000/svg"
 xmlns="http://www.w3.org/2000/svg"
 >
+<style></style>
 %s
    Sorry, your browser does not support inline SVG.
 </svg>
@@ -174,5 +177,5 @@ xmlns="http://www.w3.org/2000/svg"
     for c,lines in contours.items():
         for n,line in enumerate(lines.lines):
             d="M "+" ".join(["%f %f"%(col,row) for row,col in line])
-            paths.append('<path id="contour_%f_%d" d="%s"/>'%(c,n,d))
+            paths.append('<path id="contour_%(value)s_%(segment)d" class="contour_%(value)s segment_%(segment)d" d="%(line)s"/>'%{'value':c,'segment':n,'line':d})
     return svg_tmpl%(height,width,"\n   ".join(paths))

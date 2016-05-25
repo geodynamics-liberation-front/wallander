@@ -3,7 +3,6 @@
  *  Main Display object
  */
 
-
 /*
  *  The display object
  */
@@ -43,22 +42,22 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.canvas.width=100;
 	this.canvas.height=100;
 	this.canvas.tabIndex=0;
-	add_class(this.canvas,"glf_canvas");
+	add_class(this.canvas,"wallander_canvas");
 	this.container=document.createElement("div");
-	add_class(this.container,"glf_container");
+	add_class(this.container,"wallander_container");
 	this.container.appendChild(this.canvas);
 	elem.appendChild(this.container);
 	this.controls=document.createElement("div");
-	add_class(this.controls,"glf_controls");
+	add_class(this.controls,"wallander_controls");
 	elem.appendChild(this.controls);	
 	this.info=document.createElement("div");
-	add_class(this.info,"glf_info");
+	add_class(this.info,"wallander_info");
 	elem.appendChild(this.info);
 	this.info_status=document.createElement("div");
-	add_class(this.info_status,"glf_info_status");
+	add_class(this.info_status,"wallander_info_status");
 	this.info.appendChild(this.info_status);
 	this.model_info=document.createElement("div");
-	add_class(this.info,"glf_info");
+	add_class(this.info,"wallander_info");
 	this.info.appendChild(this.model_info);
 
 	// create the projector
@@ -83,7 +82,9 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.canvas.addEventListener('keyup',function(e) {self.tool.keyup(self,e);});
 	this.resize();
 	var rect = this.canvas.getBoundingClientRect();
-	this.updateXY({clientX:rect.left,clientY:rect.top})
+	this.lastXY=this.xy({clientX:rect.left,clientY:rect.top})
+	this.updateXY()
+	this.projector.updateStatus()
 }
 
 Display.prototype.toString = function()
@@ -91,11 +92,51 @@ Display.prototype.toString = function()
 	return "Display[canvas#"+this.canvas.id+"]";
 }
 
+Display.prototype.restoreState = function(name,callback)
+{
+	var self=this
+	console.log("Restoring state "+name)
+	jsonCall('/wallander/s/'+name,function(state,callback) { self.stateRestored(state,callback) },callback)	
+}
+
+Display.prototype.stateRestored = function(state,callback)
+{
+	this.deserialize(state,callback)
+}
+
+Display.prototype.saveState = function()
+{
+	var self=this
+	jsonCall('/wallander/s',function() { self.stateSaved() },null,this.serialize())	
+}
+
+Display.prototype.stateSaved = function(name)
+{
+	console.log("State saved as "+name)
+}
+
+Display.prototype.serialize = function()
+{
+	state.status_mgr=display.status_mgr.serialize()
+	state.data_field_mgr=display.data_field_mgr.serialize()
+	return JSON.stringify(state)	
+}
+
+Display.prototype.deserialize = function(state,callback)
+{
+	if( typeof(state)=='string' )	
+	{
+		state=JSON.parse(serialized_obj)
+	}
+	this.status_mgr.deserialize(state.status_mgr)
+	this.data_field_mgr.deserialize(state.data_field_mgr,callback)
+}
+
 Display.prototype.updateXY = function(e)
 {
 	var self=this
 	// Update the XY locations
-	var xy=this.xy(e);
+	var xy=this.lastXY=e?this.xy(e):this.lastXY
 	xy.x=Math.floor(xy.x)
 	xy.y=Math.floor(xy.y)
 	var fmt="%s"

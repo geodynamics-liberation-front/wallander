@@ -78,7 +78,10 @@ function click_favorite()
 
 function add_favorite(resp)
 {
-	color_favorite()
+	if( ds_location==resp.path)
+	{
+		color_favorite()
+	}
 	favorites.push(resp.path)
 	favorites.sort()
 	favorite_objects[resp.path]=resp
@@ -180,7 +183,7 @@ function list_favorites()
 	contents.innerHTML=''
 	for(i=0;i<favorites.length;i++)
 	{
-		favo= favorite_objects[favorites[i]]
+		favo=favorite_objects[favorites[i]]
 		contents.appendChild(create_icon(favorite_objects[favorites[i]],'path'))
 	}
 }

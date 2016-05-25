@@ -291,7 +291,7 @@ function Background(src)
 	this.name="background";
 	this.display=true;
 	this.img=new Image()
-	this.img.src=src||"data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAoSURBVBiVY/z//z8DOtiyZQuGIBOGKhxgABWyYHO4j48PI+2tpr5CAKIuCi6gLUyOAAAAAElFTkSuQmCC"
+	this.img.src=src||"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAoSURBVBiVY/z//z8DOtiyZQuGIBOGKhxgABWyYHO4j48PI+2tpr5CAKIuCi6gLUyOAAAAAElFTkSuQmCC"
 }
 
 Background.prototype.call = function(display)
@@ -299,9 +299,10 @@ Background.prototype.call = function(display)
 	var pattern = display.paper.createPattern(this.img,"repeat");
 	display.paper.translate(-display.x,-display.y)
 	display.paper.scale(1.0/display.zoom_level,1.0/display.zoom_level);
-	display.paper.rect(0,0,display.canvas.width,display.canvas.height);
+	//display.paper.rect(0,0,display.canvas.width,display.canvas.height);
 	display.paper.fillStyle=pattern;
-	display.paper.fill();
+	//display.paper.fill();
+	display.paper.fillRect(0,0,display.canvas.width,display.canvas.height);
 	display.paper.scale(display.zoom_level,display.zoom_level);
 	display.paper.translate(display.x,display.y)
 }
@@ -314,13 +315,14 @@ function Movie()
 	this.name='movie';
 	this.data_fields={}
 	this.z_order=[]
+	this.expected_frames=0
+	this.loaded_frames=0
 	this.x=0;
 	this.y=0;
 	this.frame=0;
 	this.last=0;
 	this.first=0;
 	this.listeners={};
-	this.load_count=0;
 }
 
 Movie.prototype.getEditor = function() { return 'movie_editor'; }
@@ -329,10 +331,12 @@ Movie.prototype.getBounds = function()
 {
 	var width=0;
 	var height=0;
-	for( var n=0; n<this.z_order.length; n++)
+	var bounds
+	for( var p in this.data_fields )
 	{
-		width=Math.max(width,this.data_fields[this.z_order[n]].img.width);
-		height=Math.max(height,this.data_fields[this.z_order[n]].img.height);
+		bounds=this.data_fields[p].getBounds()
+		width=Math.max(width,bounds.width);
+		height=Math.max(height,bounds.height);
 	}
 	return {x: this.x,
             y: this.y,
@@ -340,27 +344,24 @@ Movie.prototype.getBounds = function()
             height: height};
 }
 
-Movie.prototype.addDataField = function(data_field,frame_type)
+Movie.prototype.addDataField = function(data_field)
 {
-	if( data_field_name in this.data_fields ) { return; }
-	var df={data_field: data_field, path: data_field.path, prefix: config[frame_type+'_prefix'], img: new Image(), opacity: 1.0};
-	var data_field_name=data_field.path+":"+frame_type
-	this.data_fields[data_field_name]=df
-	this.z_order.push(data_field_name)
-	this.last=Math.max(this.last,data_field._time.length-1)
-	var self=this;
-	df.img.addEventListener('load', function(e) { self.loaded(e); });
+	var path=data_field.path
+	if( path in this.data_fields ) { return; }
+	this.data_fields[path]=data_field
+	this.z_order.push(path)
+	this.last=Math.max(this.last,data_field.frame_count-1)
 	this.show()
 }
 
-Movie.prototype.removeDataField = function(path,frame_type)
+Movie.prototype.removeDataField = function(path)
 {
 	if( data_field_name in this.data_fields ) 
 	{ 
-		var data_field_name=path+":"+frame_type
-		delete this.data_fields[data_field_name]
-		var ndx=this.z_order.indexOf(data_field_name)
+		delete this.data_fields[path]
+		var ndx=this.z_order.indexOf(path)
 		this.z_order.splice(ndx,1)
+		// TODO handle this.last
 	}
 }
 
@@ -378,10 +379,11 @@ Movie.prototype.reset = function()
 
 Movie.prototype.loaded = function(e)
 {
-	this.load_count++;
-	if( this.load_count>=this.z_order.length )
+	this.loaded_frames++
+	if( this.loaded_frames>=this.expected_frames )
 	{
-		this.load_count=0;
+		this.expected_frames=0
+		this.loaded_frames=0
 		this.dispatchEvent('load',e);
 	}
 }
@@ -416,8 +418,20 @@ Movie.prototype.call = function(display)
 	for( var i=0; i<this.z_order.length; i++)
 	{
 		var df=this.data_fields[this.z_order[i]];
-		display.paper.globalAlpha=df.opacity
-		display.paper.drawImage(df.img,this.x,this.y);
+		if( df.visible )
+		{
+			var images=df.getImages()
+			for( var i=0; i<images.length; i++ )
+			{
+				var image=images[i]
+				if( image.opacity>0 )
+				{
+					display.paper.globalAlpha=image.opacity
+					display.paper.drawImage(image.image,this.x,this.y)
+				}
+
+			}
+		}
 	}
 
 	display.paper.globalAlpha=1.0
@@ -440,9 +454,14 @@ Movie.prototype.previous = function()
 
 Movie.prototype.show = function()
 {
-	for( var i=0; i<this.z_order.length; i++)
+	this.loaded_frames=0
+	this.expected_frames=0
+	for( var p in this.data_fields )
 	{
-		var df=this.data_fields[this.z_order[i]];
-		df.img.src=df.prefix+df.path+'.'+df.data_field.renderer+'.'+sprintf("%05d",this.frame)+'.png'
+		this.expected_frames+=this.data_fields[p].loadImages(this.frame)
+	}
+	if(this.expected_frames==0)
+	{
+		this.loaded()
 	}
 }

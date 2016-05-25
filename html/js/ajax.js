@@ -23,26 +23,26 @@ function httpRequest()
 	return request;
 }
 
-function jsonCall(url,response,args)
+function jsonCall(url,response,args,post)
 {
-	var v=httpCall(url,response,'json',args);
+	var v=httpCall(url,response,'json',args,post);
 	if( !response )
 	{
 		return JSON.parse(v);
 	}
 }
 
-function textCall(url,response,args)
+function textCall(url,response,args,post)
 {
-	return httpCall(url,response,'text',args);
+	return httpCall(url,response,'text',args,post);
 }
 
-function documentCall(url,response,args)
+function documentCall(url,response,args,post)
 {
-	return httpCall(url,response,'document',args);
+	return httpCall(url,response,'document',args,post);
 }
 
-function httpCall(url,response,type,args)
+function httpCall(url,response,type,args,post)
 {
 	var r=httpRequest();
 	if (response)
@@ -51,8 +51,8 @@ function httpCall(url,response,type,args)
 		r.args=args;
 		r.onreadystatechange=function() { if (r.readyState===4) {response(r.response,r.args);} };
 	}
-	r.open('GET', url, response!=undefined);
-	r.send();
+	r.open(post?"POST":"GET", url, response!=undefined);
+	r.send(post);
 	return r.response
 }
 

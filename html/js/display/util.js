@@ -1,5 +1,7 @@
 var script_src=document.currentScript.src;
-var path=script_src.substring(0,script_src.lastIndexOf('/')+1)+'display/'
+var path=script_src.substring(0,script_src.lastIndexOf('/')+1)+'../'
+var img_path=path+'img/'
+var css_path=path+'css/'
 
 function toggle_class(node,classname1,classname2)
 {
@@ -43,13 +45,13 @@ function add_stylesheet(stylesheet)
 {
 	var style=document.createElement('link');
 	style.rel="stylesheet";
-	style.href=path+"css/"+stylesheet;
+	style.href=css_path+stylesheet;
 	document.head.appendChild(style);
 }
 
 function get_img_url(img)
 {
-	return path+"img/"+img;
+	return img_path+img;
 }
 
 

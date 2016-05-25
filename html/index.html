@@ -7,8 +7,8 @@
 	<script src="/js/dialog.js"></script>
 	<script src="/js/ajax.js"></script>
 	<script src="/js/units.js"></script>
-	<script src="/js/wallander_display.js"></script>
 	<script src="/js/widgets.js"></script>
+	<script src="/js/wallander_display.js"></script>
 <script>
 "use strict";
 var display=null;
@@ -26,8 +26,44 @@ function init()
 	display.addDepiction(new Background(),0);
 	// Resize the screen
 	setTimeout( function(e) {display.resize();}, 10)
+	load_resources()
+}
 
-	// Show the body of the document
+// load any addiional resources, colormaps etc.
+function load_resources()
+{
+	// load the default colormaps
+	resource_count++
+	loadDefaultColormaps(config['frame_prefix']+'/_colormaps',resources_loaded)
+}
+
+var resource_count=0
+
+function resources_loaded()
+{
+	if( --resource_count == 0 ) 
+	{	
+		deseralized()
+	}
+}
+
+// Restore our previous state
+function deseralized()
+{
+	var serialid=document.location.hash.substring(1)
+	if(serialid)
+	{
+		display.restoreState(serialid,showPage)
+	}
+	else
+	{
+		showPage()
+	}
+}
+
+// Finally - show the page
+function showPage()
+{
 	document.body.style.opacity="1"
 }
 
@@ -40,6 +76,8 @@ body {
 	transition-delay: .5s;
 	transition-property: opacity;
 	transition-duration: .1s;
+	overflow-y: scroll;
+	padding-bottom:300px;
 }
 
 #status input {
@@ -50,6 +88,12 @@ body {
 	margin-left: 2px;
 	margin-right: 2px;
 }
+
+.color_picker .swatch {
+	border: 1px solid #a9a9a9
+}
+
+
 /* templates */
 .templates { display: none; }
 
@@ -60,6 +104,21 @@ body {
 	text-align: right;
 }
 
+/*
+table {
+	border-collapse: collapse;
+}
+*/
+.data_field_details td{
+	vertical-align: top;
+}
+
+.data_field_options .tooltip {
+display: inline-block;
+width:20px;
+height:20px;
+margin-left: -20px
+}
 </style>
 </head>
 <body>
@@ -74,18 +133,39 @@ body {
 
 <div class="templates depiction_display">
 	<div id="data_field_template">
-		<div class="data_field_bar">
+		<div class="data_field_status">
 <span class="data_field_name label">name</span>
 <span class="data_field_value">value</span>
 		</div>
 		<div class="data_field_details">
-This is the data field details
-<p>unit/format: <select class="data_field_colormap"></select></p>
-<p>format: <select class="data_field_colormap"></select></p>
-<p>colormap: <select class="data_field_colormap"></select></p>
+<table>
+<tbody class="data_field_options">
+<tr><td colspan="3"> 
+<object height="20" class="data_field_control_up" type="image/svg+xml" data="img/up.svg"></object><span title="move up" class="tooltip"></span>
+<object height="20" class="data_field_control_down" type="image/svg+xml" data="img/down.svg"></object><span title="move down" class="tooltip"></span>
+<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object><span title="delete" class="tooltip"></span>
+<object height="20" class="data_field_control_frame" type="image/svg+xml" data="img/raster.svg"></object><span title="show field image" class="tooltip"></span>
+<object height="20" class="data_field_control_contour" type="image/svg+xml" data="img/contour.svg"></object><span title="show field contours" class="tooltip"></span>
+<object height="20" class="data_field_control_reference" type="image/svg+xml" data="img/star.svg"></object><span title="use as reference field" class="tooltip"></span>
+<object height="20" class="data_field_control_link_frames" type="image/svg+xml" data="img/film.svg"></object><span title="sync to reference field using frames" class="tooltip"></span>
+<object height="20" class="data_field_control_link_time" type="image/svg+xml" data="img/clock.svg"></object><span title="sync to reference field using time" class="tooltip"></span>
+</td></tr>
+<tr><td>unit/format</td><td><select class="data_field_unit"></select></td><td><input type="text" class="data_field_format"/></td></tr>
+</tbody>
+<tbody class="data_field_frame_options">
+<tr><td colspan="3" style="text-align: center">image options</td></tr>
+<tr><td>opacity</td><td colspan="2"><input type='range' class="data_field_frame_opacity" min="0.0" max="1.0" step="0.01"/></td></tr>
+<tr><td>colormap:</td><td colspan="2"><select class="data_field_colormap"></select></td></tr>
+<tr><td>min/max</td><td><input type="text" class="data_field_min"/></td><td><input type="text" class="data_field_max"/></td></tr>
+<tr><td>under/over color</td><td><input class="data_field_under"/></td><td><input class="data_field_over"/></td>
+<tr><td>log scale:</td><td colspan="2"> <input type="checkbox" class="data_field_log"/> </td><tr>
+</tbody>
+<tbody class="data_field_contour_options">
+<tr><td colspan="3" style="text-align: center">contour options</td></tr>
+<tr><td>opacity</td><td colspan="2"><input type='range' class="data_field_contour_opacity" min="0.0" max="1.0" step="0.01"/></td></tr>
+</tbody>
+</table>
 		</div>
-	</div>
-	</div>
 	</div>
 </div>
 

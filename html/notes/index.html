@@ -7,22 +7,24 @@
 Welcome to Wallander, a data inspector.
 </p>
 
+<h3>Definitions</h3>
 Data Provider: is a Python object that provides access to one or more Data Sources.</br>
 Data Source: is a Python object that contains one or more fields.</br>
 Data Field: the type of data provided by a data source.</br>
 
 <h3>URLs</h3>
 data provider URL: <pre>/wallander/[data_provider]</pre><br/>
-data URL:  <pre>/wallander/[data_provider]/[data_source_path].../[data_source]/[data_field]{/[slice]}{/[function]{/[function]{...}}</pre>
-image URL:    <pre>/frames/[data_provider]/[data_source_path].../[data_source_field]-{kwargs}-[frame]</pre><br/>
+data URL:  <pre>/wallander/[data_provider]/[data_source_path].../[data_source]/[data_field]{/[slice]}{/[function]{/[function]{...}}</pre><br/>
+image URL:    <pre>/frames/[data_provider]/[data_source_path].../[data_source_field].{renderer}.[frame].png</pre><br/>
+contour URL:    <pre>/contours/[data_provider]/[data_source_path].../[data_source_field].{contours}.[frame].svg</pre><br/>
+Vector URL:    <pre>/arrows/[data_provider]/[data_source_path].../[data_source_field].{size}.[frame].svg</pre><br/>
 
 <h4>slice format</h4>
 See <a href="http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html">Numpy Indexing</a>
 <h4>function format</h4>
 Each Data Provider may control the functions they supply.  
-The Base Data Provider exposes all the attributes of the NumPy module that return true when passed to <a href="https://docs.python.org/2/library/inspect.html#inspect.isfunction">inspect.isfunction</a>.
+The Base Data Provider exposes all the attributes of the NumPy module that result in in <a href="https://docs.python.org/2/library/inspect.html#inspect.isfunction">inspect.isfunction</a> returning true when the attribute is passed as the argument.
 <h4>examples</h4>
-
 
 <h3>JSON Responses</h3>
 Minimum JSON response OBJECT:
@@ -32,13 +34,12 @@ Minimum JSON response OBJECT:
 	icon: STRING,
 	name: STRING,
 	display_name: STRING,
-	children: [ OBJECT, OBJECT, ... ]
+	[children: [ OBJECT, OBJECT, ... ]]
 }
 </pre>
 
 Well known types:
 <h4>Data Provider</h4>
-extends OBJECT
 <pre>
 {
 }
@@ -48,31 +49,68 @@ extends OBJECT
 {type:[TYPE]}
 </pre>
 <h4>Data Field</h4>
-extends OBJECT
 <pre>
 {
-	unit: STRING
-	format: C_STYLE_FORMAT_STRING,
-	data_type: ('text','vector','scalar')
-	dimensions: INTEGER
-	dimension_unit: STRING
+	type: STRING,
+	display_name: STRING,
+	name: STRING,
+	path: STRING,
+	renderer: STRING,
+	data_type: ['text'|'vector'|'scalar'],
+	unit: STRING,
+	format: C_STYLE_FORMAT_STRING,,
+	dimensions: INTEGER,
+	dimension_unit: STRING,
+    dimension_format: STRING,
 /* if 1d or 2d */
+    nx: INT,
 	dx: FLOAT, 
 	x0: FLOAT,
 /* if 2d */
+	ny: INT
 	dy: FLOAT, 
 	y0: FLOAT,
+    time_unit: STRING,
+	frames: INT,
+	time_format: STRING,
+	time: arrray(FLOAT)
 }
 </pre>
 Data_types: text, vector, scalar, 1d, 2d, +time
+<h4>Examples</h4>
+<pre>
+{
+ "type": "data_field"
+ "display_name": "Dewatering"
+ "name": "dwtr"
+ "path": "/StagYY/plate_coupling/pc08/pc_00000/dwtr"
+ "renderer": "AlphaGreen"
+ "data_type": "scalar"
+ "unit": "ea"
+ "format": "%0.2f"
+ "dimensions": 2
+ "dimension_unit": "m"
+ "dimension_format": "%_d"
+ "nx": 3617
+ "x0": 752.00442355543282
+ "dx": 1504.0088471108656
+ "ny": 904
+ "y0": 99247.787610619474
+ "dy": -1504.424778761062
+ "time_unit": "s"
+ "frames": 98
+ "time_format": "%_d"
+ "time": [0.0, 2455724621824.0, 5218846638080.0, 7295927320576.0, 10365327900672.0, 13380492460032.0, 17779681918976.0, 20905895919616.0, 23745494253568.0, 28421908332544.0, 31548369797120.0, 34239961628672.0, 36682141270016.0, 41076505182208.0, 43782779174912.0, 47383874371584.0, 52779972296704.0, 56134098485248.0, 59280673734656.0, 64185799016448.0, 66452749025280.0, 70639176122368.0, 73455894528000.0, 76457355247616.0, 81038441185280.0, 83589207162880.0, 86677053767680.0, 90165003419648.0, 97008010395648.0, 99969792999424.0, 102359153770496.0, 109002679648256.0, 113342635048960.0, 116432796909568.0, 121725689790464.0, 127601716756480.0, 130395215495168.0, 133925695389696.0, 140408243879936.0, 143896000593920.0, 147111874134016.0, 155171346710528.0, 159569057677312.0, 165575452000256.0, 171965507698688.0, 174822365593600.0, 183140794499072.0, 192520885633024.0, 196712756936704.0, 204461330923520.0, 215313740201984.0, 223139506159616.0, 226023643807744.0, 229550801813504.0, 241009942331392.0, 250781294919680.0, 261306078724096.0, 267371763728384.0, 270177149124608.0, 272910409269248.0, 275712204341248.0, 279987491962880.0, 283782011682816.0, 291031312498688.0, 299279830745088.0, 308159709184000.0, 318698619404288.0, 328681364914176.0, 338951604797440.0, 349406830264320.0, 361677686046720.0, 374118998343680.0, 385003653431296.0, 394839665410048.0, 405004812812288.0, 416232830402560.0, 427184762126336.0, 438747518730240.0, 451361367916544.0, 462585694519296.0, 474150598606848.0, 486574529708032.0, 498033770889216.0, 509932810010624.0, 522488844910592.0, 535171514236928.0, 546026674978816.0, 557279153750016.0, 569458372378624.0, 579759583002624.0, 590989982957568.0, 602185284976640.0, 613932356075520.0, 627381979054080.0, 640371973423104.0, 651292061990912.0, 663204489330688.0, 673785879461888.0]
+}
+</pre>
 
 <h3>Renderers</h3>
-<pre>colormap-min-max-under color-over color-bad color</pre>
+<pre>[colormap{-log}]_[min]_[max]_[under color]_[over color]_[bad color]</pre>
 over,under,bad formated as hex strings RRGGBBAA.
-Any name can be appended with _log to get a log color map.
+Any name can be appended with &quot;-log&quot; to get a log color map.
 <h4>Examples</h4>
 A colormap that uses Purple to Blue base colormap, has a min/max of 1e19/1e24 and an under color of  #2DD6D6 with and alpha of 0.2
-PuBu_log-1e19-1e24-2DD6D633
+PuBu-log_1e19_1e24_2DD6D633
 
 </body>
 </html>

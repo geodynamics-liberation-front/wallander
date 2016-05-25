@@ -25,6 +25,7 @@ function Projector(display)
 	this.movie.show();
 	this.loop=false;
 	this.fps=10;
+	this.actualFPS='-'
 	this.frameTime=0
 	this.direction=1;
 	this.playing=false;
@@ -32,7 +33,7 @@ function Projector(display)
 
 	// Setup the controls
 	this.controls=document.createElement("div");
-	add_class(this.controls,"glf_projector_controls");
+	add_class(this.controls,"wallander_projector_controls");
 	display.controls.appendChild(this.controls);
 	// And the buttons
 	this.btn_begining=new_button(function(e){self.begining();},"begining",this.controls);
@@ -49,7 +50,7 @@ Projector.prototype.pause = function()
 	this.playing=false;
 	this.btn_play.style.display='';
 	this.btn_pause.style.display='none';
-	remove_class(this.controls,"glf_playing")
+	remove_class(this.controls,"wallander_playing")
 	this.frameTime=-1
 }
 
@@ -58,7 +59,7 @@ Projector.prototype.play = function()
 	this.playing=true;
 	this.btn_play.style.display='none';
 	this.btn_pause.style.display='';
-	add_class(this.controls,"glf_playing")
+	add_class(this.controls,"wallander_playing")
 	this.next();
 }
 
@@ -101,24 +102,33 @@ Projector.prototype.goto = function(frame)
 {
 	this.movie.frame=frame
 	this.movie.show()
-	this.display.status_mgr.set_status('frame',frame)
+	this.updateStatus()
+}
+
+Projector.prototype.redraw = function()
+{
+	this.movie.show()
 }
 
 Projector.prototype.next = function()
 {
 	this.movie.next(this.direction);
-	frame=this.movie.frame
 	if( this.playing && this.frameTime>0 ) 
 	{
 		this.actualFPS=Math.round(1000/(performance.now()-this.frameTime));
-		this.display.status_mgr.set_status('fps',this.actualFPS+'/'+this.fps)
 	}
 	else
 	{
-		this.display.status_mgr.set_status('fps','-/'+this.fps)
+		this.actualFPS='-'
 	}
 	this.frameTime=performance.now();
+	this.updateStatus()
+}
 
+Projector.prototype.updateStatus = function()
+{
+	var frame=this.movie.frame
+	// update the time
 	var fmt="%s"
 	var t=0
 	var unit=''	
@@ -129,8 +139,13 @@ Projector.prototype.next = function()
 		fmt=df.time_format
 		unit=df.time_unit
 	}
-	time_status=sprintf(fmt+' <span class="label">%s</span>',t,unit)
+	var time_status=sprintf(fmt+' <span class="label">%s</span>',t,unit)
 	this.display.status_mgr.set_status('time',time_status)
+
+	// update the frames per second
+	this.display.status_mgr.set_status('fps',this.actualFPS+'/'+this.fps)
+
+	// Update the frame number
 	this.display.status_mgr.set_status('frame',frame)
 }
 

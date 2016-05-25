@@ -1,4 +1,4 @@
-.glf_container {
+.wallander_container {
 overflow: hidden;
 width: 100px;
 height: 100px;
@@ -9,11 +9,11 @@ margin: 0 auto;
 }
 
 
-.glf_canvas { 
+.wallander_canvas { 
 	border: 1px solid #cccccc; 
 } 
 
-.glf_canvas:focus {
+.wallander_canvas:focus {
 	outline: none;
 }
 

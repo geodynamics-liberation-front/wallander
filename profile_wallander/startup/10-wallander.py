@@ -31,4 +31,4 @@ def get(url):
     out.close()
     return response
 
-if os.path.exists('wallander_rc.py'): execfile('wallander_rc.py')
+if os.path.exists('.wallander_rc.py'): execfile('.wallander_rc.py')

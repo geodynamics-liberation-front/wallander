@@ -25,17 +25,18 @@ DataFieldManager.prototype.serialize = function()
 	return serialized_data_field_mgr
 }
 
-DataFieldManager.prototype.deserialize = function(serialized_data_field_mgr,callback)
+DataFieldManager.prototype.deserialize = function(serialized_data_field_mgr,callback,args)
 {
 	var self=this
-	var paths=serialized_data_field_mgr.paths.slice()
+	var paths=[]
+	for( var i=0; i<serialized_data_field_mgr.paths.length; i++ )
+	{
+		paths.push(config['app_prefix']+serialized_data_field_mgr.paths[i])
+	}
 	if( paths.length>0 )
 	{
-		jsonCall(config['app_prefix']+paths.pop(),function(df,a) {self.loadDataField(df,a)}, {
-			paths:paths,
-			display:display,
-			serialized_data_field_mgr:serialized_data_field_mgr,
-			callback:callback})
+		var resource_bundle=new JSONResourceBundle(paths,function(r,a){self.dataFieldsLoaded(r,a)},{callback:callback,args:args,serialized_data_field_mgr:serialized_data_field_mgr})
+		resource_bundle.load()
 	}
 	else if( callback )
 	{
@@ -43,32 +44,17 @@ DataFieldManager.prototype.deserialize = function(serialized_data_field_mgr,call
 	}
 }
 
-DataFieldManager.prototype.loadDataField = function(data_field,args)
+DataFieldManager.prototype.dataFieldsLoaded = function(resource_bundle,args)
 {
-	var self=this
-	this.addDataField(data_field)
-	// Load another data field if necessary
-	if( args.paths.length>0 )
+	for( var i=0; i<resource_bundle.urls.length; i++ )
 	{
-		jsonCall(config['app_prefix']+args.paths.pop(),function(fd,a) {self.loadDataField(df,a)},args)
+		var data_field=resource_bundle.responses[resource_bundle.urls[i]]
+		// Add the data_field in it's default state
+		var data_field_obj=this.addDataField(data_field)
+		data_field_obj.deserialize(args.serialized_data_field_mgr.data_fields[data_field_obj.path])
 	}
-	else
-	{
-		var display=args.display
-		var serialized_data_field_mgr=args.serialized_data_field_mgr
-		var callback=args.callback
-
-		for( var path in this.data_fields) 
-		{
-			this.data_fields[path].deserialize(args.serialized_data_field_mgr.data_fields[path])
-		}
-		if( serialized_data_field_mgr.reference_data_field )
-		{
-			this.setReferenceDataField(this.data_fields[serialized_data_field_mgr.reference_data_field])
-		}
-
-		if(callback) callback()
-	}
+	this.setReferenceDataField(this.data_fields[args.serialized_data_field_mgr.reference_data_field])
+	if(args.callback) args.callback(args.args)
 }
 
 DataFieldManager.prototype.addDataField = function(data_field)
@@ -95,6 +81,7 @@ DataFieldManager.prototype.addDataField = function(data_field)
 	{ 
 		this.setReferenceDataField(df)
 	}
+	return df
 }
 
 DataFieldManager.prototype.removeDataField = function(data_field)
@@ -409,6 +396,7 @@ ScalarDataField.prototype.getBounds = function()
 ScalarDataField.prototype.serialize = function()
 {
 	var serialized_data_field = Object.getPrototypeOf(ScalarDataField.prototype).serialize.call(this);
+// TODO: have frame and contour options serialize themselves
 	serialized_data_field.renderer=this.frame_options.renderer
 	serialized_data_field.frame_opacity=this.frame_options.opacity
 	return serialized_data_field
@@ -417,6 +405,7 @@ ScalarDataField.prototype.serialize = function()
 ScalarDataField.prototype.deserialize = function(serialized_data_field)
 {
 	Object.getPrototypeOf(ScalarDataField.prototype).deserialize.call(this,serialized_data_field);
+// TODO: have frame and contour options deserialize themselves
 	this.frame_options.renderer = serialized_data_field.renderer
 	this.frame_options.opacity=serialized_data_field.frame_opacity
 }

@@ -107,7 +107,7 @@ Display.prototype.stateRestored = function(state,callback)
 Display.prototype.saveState = function()
 {
 	var self=this
-	jsonCall('/wallander/s',function() { self.stateSaved() },null,this.serialize())	
+	jsonCall('/wallander/s',function(name) { self.stateSaved(name) },null,this.serialize())	
 }
 
 Display.prototype.stateSaved = function(name)
@@ -117,6 +117,7 @@ Display.prototype.stateSaved = function(name)
 
 Display.prototype.serialize = function()
 {
+	state={}
 	state.status_mgr=display.status_mgr.serialize()
 	state.data_field_mgr=display.data_field_mgr.serialize()
 	return JSON.stringify(state)	
@@ -128,6 +129,7 @@ Display.prototype.deserialize = function(state,callback)
 	{
 		state=JSON.parse(serialized_obj)
 	}
+	console.log(state)
 	this.status_mgr.deserialize(state.status_mgr)
 	this.data_field_mgr.deserialize(state.data_field_mgr,callback)
 }

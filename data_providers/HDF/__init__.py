@@ -3,12 +3,12 @@ import h5py
 import os
 import wallander
 import wallander.cache as cache
-import wallander.data_providers as data_provider
+import wallander.data_providers as data_providers
 from config import configuration
 
 LOG=logging.getLogger(__name__)
 
-class H5DataProvider(data_provider.BaseDataProvider):
+class H5DataProvider(data_providers.BaseDataProvider):
     def __init__(self,name="HDF"):
         super(H5DataProvider, self).__init__(name,configuration)
         self.cache=cache.TimedCache(create=self._create_datasource,distroy=self._distroy_datasource)

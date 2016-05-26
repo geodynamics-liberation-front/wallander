@@ -11,7 +11,7 @@ LOG.setLevel(logging.WARN)
 
 # The name of the loggers to configure
 LOGS=[__name__+".LOG","__main__.LOG","wallander.LOG","wallander.application.LOG","StagYY.LOG","wallander.cache.LOG","wallander.viz.LOG",
-"wallander.data_providers.LOG"]
+"wallander.data_providers.LOG","wallander.contour.LOG"]
 DEFAULT_LOG_LEVEL=logging.DEBUG
 # Add the log name and logging level, otherwise logging level will be DEFAULT_LOG_LEVEL
 # e.g.:  LOG_LEVELS={"wallander.LOG":logging.WARNING}

@@ -268,6 +268,7 @@ function ColorPicker(input,w,h)
 	this._V=hsv[2]
 	this._alpha=hsv[3]
 	this._listeners=new Object()
+	this._allow_nocolor=true
 	this._nocolor=!input.value
 	this._nocolor0=this._nocolor
 	this._nocolor_image=new Image()
@@ -344,13 +345,13 @@ function ColorPicker(input,w,h)
 	this.ncd.style.position='relative'
 	this.ncd.style.top=(2*this.outer_radius)+'px'
 	this.selector_elem.appendChild(this.ncd)
-	var label=document.createElement('label')
-	this.ncd.appendChild(label)
+	this.nocolor_label=document.createElement('label')
+	this.ncd.appendChild(this.nocolor_label)
 	this.nc_cb=document.createElement('input')
 	this.nc_cb.type='checkbox'
 	this.nc_cb.addEventListener('change',function(e) { color_picker.nocolor=e.target.checked; })
-	label.appendChild(this.nc_cb)
-	label.appendChild(document.createTextNode('no color'))
+	this.nocolor_label.appendChild(this.nc_cb)
+	this.nocolor_label.appendChild(document.createTextNode('no color'))
 
 	var rect=this.selector_elem.getBoundingClientRect()
 	this.height=this.width+rect.height
@@ -408,7 +409,7 @@ Object.defineProperty(ColorPicker.prototype,'nocolor',
 Object.defineProperty(ColorPicker.prototype,'value',
 	{enumerable: true, 
      get: function() { 
-		if( this._nocolor ) return null;
+		if( this._allow_nocolor && this._nocolor ) return null;
 
 		var args=hsv2rgb(this._H,this._S,this._V,this._alpha)
 		args.push(!this.hash)
@@ -435,6 +436,16 @@ Object.defineProperty(ColorPicker.prototype,'value',
 			this.input.value=''
 		}	
 		}
+	})
+Object.defineProperty(ColorPicker.prototype,'allow_nocolor',
+	{enumerable: true, 
+     get: function() { return this._allow_nocolor}, 
+     set: function(allow_nocolor) 
+		{ 
+			allow_nocolor=Boolean(allow_nocolor)
+			this._allow_ncolor=allow_nocolor
+			this.nocolor_label.style.display=allow_nocolor?'':'none'
+		} 
 	})
 
 
@@ -759,7 +770,8 @@ ColorPicker.prototype.draw_selectors = function()
 		c.strokeStyle="#ffffff"
 		c.stroke()
 
-		var p={x:this._S*this.triangle_base+this.outer_radius-this.inner_radius*COS30,y:this._V*this.triangle_height+this.delta_radius}
+		var s=Math.max(.5-this._V/2,Math.min(.5+this._V/2,this._S))
+		var p={x:s*this.triangle_base+this.outer_radius-this.inner_radius*COS30,y:this._V*this.triangle_height+this.delta_radius}
 		p=this.rotate(p,(this._H+30)*Math.PI/180)
 		c.save()
 		c.beginPath()

@@ -39,11 +39,11 @@ StatusManager.prototype.serialize = function()
 	return status_visibility
 }
 
-StatusManager.prototype.deserialize = function(status_visiblity)
+StatusManager.prototype.deserialize = function(status_visibility)
 {
-	var status_visibility={}
 	for( var status_name in status_visibility) 
 	{
+		console.log(status_name+".visibility = "+status_visibility[status_name] )
 		this.statuses[status_name].visibility=status_visibility[status_name]
 	}
 }

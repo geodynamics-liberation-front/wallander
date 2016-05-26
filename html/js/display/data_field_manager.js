@@ -382,9 +382,9 @@ ScalarDataField.prototype.loadImages = function(frame)
 		this.frame_options.image.src=sprintf(this.frame_options.url,frame)
 		expected_frames++
 	}
-	if( this.contour_options.show )
+	if( this.contour_options.show && this.contour_options.contour_levels.length>0)
 	{
-		this.contour_options.image.src=sprintf(this.contour_options.url,frame)
+		loadSVG(sprintf(this.contour_options.url,frame),this.contour_options.image, this.contour_options.style)
 		expected_frames++
 	}
 	return expected_frames
@@ -394,7 +394,7 @@ ScalarDataField.prototype.getImages = function()
 {
 	var images=[]
 	if( this.frame_options.show ) images.push({image:this.frame_options.image,opacity:this.frame_options.opacity})
-	if( this.contour_options.show ) images.push({image:this.contour_options.image,opacity: 1.0})
+	if( this.contour_options.show ) images.push({image:this.contour_options.image,opacity: this.contour_options.opacity})
 	return images
 }
 
@@ -421,22 +421,13 @@ ScalarDataField.prototype.deserialize = function(serialized_data_field)
 	this.frame_options.opacity=serialized_data_field.frame_opacity
 }
 
-ScalarDataField.prototype.upateContours = function()
-{
-	if( this.allow_contour_updates )
-	{
-		this._contours=compose_contours(this.contour_levels)
-		this.frame_info.frame.url=config['frame_prefix']+this.path+'.'+this._contours+'.%05d.png'
-		this.data_field_mgr.display.projector.redraw()
-	}
-}
-
 function ContourOptions(data_field)
 {
 	var self=this
 	this.data_field=data_field
-	this.allow_renderer_updates=true
+	this.allow_updates=true
 	this._show=false
+	this._projector=data_field.data_field_mgr.display.projector
 
 	this.url=''
 	this.image=new Image()
@@ -446,9 +437,10 @@ function ContourOptions(data_field)
 
 	this.contour_levels=[]
 	this._contours=''
+	this._style=''
 
 	// Image button
-	this.table =data_field.html_display.getElementsByClassName('data_field_contour_options')[0]
+	this.table=data_field.html_display.getElementsByClassName('data_field_contour_options')[0]
 	this.table.style.display=this._show?'':'none'
 	var svg_obj=data_field.html_display.getElementsByClassName('data_field_control_contour')[0]
 	this.svg=svg_obj.getSVGDocument()
@@ -459,17 +451,34 @@ function ContourOptions(data_field)
 	this.opacity_range=data_field.html_display.getElementsByClassName('data_field_contour_opacity')[0]
 	this.opacity_range.value=1.0
 	this.opacity_range.addEventListener('input',function(e) { self.opacity=e.target.value })
+
+	// Add contour button
+	this.add_button=data_field.html_display.getElementsByClassName('data_field_contour_add')[0]
+	this.add_button.addEventListener('click',function(e) { self.addContourFields() })
 }
 
 ContourOptions.prototype.updateContours = function(e)
 {
-	if( this.allow_contours_updates )
+	if( this.allow_updates )
 	{
-		this._contours=this.contour_levels.join('_')
+		var levels=[]
+		var style=[]
+		for( var i=0; i<this.contour_levels.length; i++ )
+		{
+			var c=this.contour_levels[i]
+			if( !c.width || c.value==undefined ) return
+			levels.push(this.contour_levels[i].value)
+			style.push(sprintf(".contour_%s { stroke: %s; stroke-width: %0.2f; fill: none}",c.value.replace('.','_'),c.rgba,parseFloat(c.width)))
+		}
+		levels.sort(function(a,b) { return parseFloat(a)-parseFloat(b)})
+		this._contours=levels.join('_')
+		this._style=style.join('\n')
 		this.url=config['contour_prefix']+this.data_field.path+'.'+this._contours+'.%05d.svg'
-		this.data_field.data_field_mgr.display.projector.redraw()
+		this._projector.redraw()
 	}
 }
+
+Object.defineProperty(ContourOptions.prototype,'style', {enumerable: true, get: function() { return this._style;}})
 
 Object.defineProperty(ContourOptions.prototype,'show',
     {enumerable: true,
@@ -480,10 +489,9 @@ Object.defineProperty(ContourOptions.prototype,'show',
 			{
 				if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
 				this._show=show
-//				if(!this.show_btn) this.show_btn=this.svg.contentDocument.getElementById('img')
 				this.svg.defaultView.highlight(show)
 				this.table.style.display=show?'':'none'
-				this.data_field.data_field_mgr.display.projector.redraw()
+				this._projector.redraw()
 			}
         }
     })
@@ -500,7 +508,7 @@ Object.defineProperty(ContourOptions.prototype,'opacity',
 				if( opacity<0 || opacity>1.0 ) throw new Error("Opacity must be bteween 0.0 and 1.0 (inclusive)")
 				this._opacity=opacity
 				if( this.opacity_range.value!=opacity ) this.opacity_range.value=opacity 
-				this.data_field.data_field_mgr.display.projector.redraw()
+				this._projector.redraw()
 			}
         }
     })
@@ -518,11 +526,93 @@ Object.defineProperty(ContourOptions.prototype,'contours',
         }
     })
 
+ContourOptions.prototype.addContourFields = function()
+{
+	var row=document.getElementById('data_field_contour_field_template').cloneNode(true)
+	row.id=''
+	this.table.appendChild(row)
+	this.contour_levels.push(new Contour(this,row))
+}
+
+function Contour(contour_options,row)
+{
+	var self=this
+	this.contour_options=contour_options
+	this._value=null
+	this._width=1
+	this._color='#000000FF'
+
+	// value
+	this.value_input=row.getElementsByClassName('data_field_contour_value')[0]
+	this.value_input.addEventListener('change',function(e) { self.value=e.target.value })
+	// width
+	this.width_input=row.getElementsByClassName('data_field_contour_width')[0]
+	this.width_input.value=this._width
+	this.width_input.addEventListener('change',function(e) { self.width=e.target.value })
+	// color
+	this.colorpicker=new ColorPicker(row.getElementsByClassName('data_field_contour_color')[0])
+	this.colorpicker.hash=true
+	this.colorpicker.allow_nocolor=false
+	this.colorpicker.value=this._color
+	this.colorpicker.addEventListener('change',function(e) { self.color=e.target.value })
+}
+
+Object.defineProperty(Contour.prototype,'value',
+    {enumerable: true,
+     get: function() { return this._value;},
+     set: function(value)
+        {
+			if( value!=this._value )
+			{
+				this._value=isNaN(parseFloat(value))?null:value
+				if( this.value_input.value!=this._value ) this.value_input.value=this._value
+				this.contour_options.updateContours()
+			}
+        }
+    })
+
+Object.defineProperty(Contour.prototype,'width',
+    {enumerable: true,
+     get: function() { return this._width;},
+     set: function(width)
+        {
+			if( width!=this._width )
+			{
+				this._width=isNaN(parseFloat(width))?null:width
+				if( this.width_input.value!=this._width ) this.width_input.value=this._width
+				this.contour_options.updateContours()
+			}
+        }
+    })
+
+Object.defineProperty(Contour.prototype,'rgba', 
+	{enumerable: true, 
+	 get: function() 
+		{ 
+			var rgba=hex2rgb(this._color); 
+			return sprintf("rgba(%d,%d,%d,%0.2f)",255*rgba[0],255*rgba[1],255*rgba[2],rgba[3]); 
+		}
+	})
+
+Object.defineProperty(Contour.prototype,'color',
+    {enumerable: true,
+     get: function() { return this._color;},
+     set: function(color)
+        {
+			if( color!=this._color )
+			{
+				this._color=color
+				if( this.colorpicker.value!=this._color ) this.colorpicker.value=this._color
+				this.contour_options.updateContours()
+			}
+        }
+    })
+
 function FrameOptions(data_field)
 {
 	var self=this
 	this.data_field=data_field
-	this.allow_renderer_updates=true
+	this.allow_updates=true
 
 	this.url=''
 	this._show=true
@@ -596,7 +686,7 @@ function FrameOptions(data_field)
 
 FrameOptions.prototype.updateRenderer = function(e)
 {
-	if( this.allow_renderer_updates )
+	if( this.allow_updates )
 	{
 		this._renderer=compose_renderer(this)
 		this.url=config['frame_prefix']+this.data_field.path+'.'+this._renderer+'.%05d.png'
@@ -613,7 +703,6 @@ Object.defineProperty(FrameOptions.prototype,'show',
 			{
 				if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
 				this._show=show
-		//		if(!this.show_btn) this.show_btn=this.svg.contentDocument.getElementById('img')
 				this.svg.defaultView.highlight(show)
 				this.table.style.display=show?'':'none'
 				this.data_field.data_field_mgr.display.projector.redraw()
@@ -645,7 +734,7 @@ Object.defineProperty(FrameOptions.prototype,'renderer',
         {
 			if( renderer!=this._renderer )
 			{
-				this.allow_renderer_updates=false
+				this.allow_updates=false
 
 				var renderer=parse_renderer(renderer)
 				this.colormap=renderer.colormap
@@ -655,7 +744,7 @@ Object.defineProperty(FrameOptions.prototype,'renderer',
 				this.undercolor=renderer.undercolor
 				this.overcolor=renderer.overcolor
 							
-				this.allow_renderer_updates=true
+				this.allow_updates=true
 				this.updateRenderer()
 			}
         }

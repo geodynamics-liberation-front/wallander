@@ -1,5 +1,8 @@
 import math
+import logging
 import numpy as np
+
+LOG=logging.getLogger(__name__)
 
 lines={
     0: lambda i,j,a,b,c,d,v: (i+1.,j+itp(a,b,v)),
@@ -137,9 +140,15 @@ def simplify(contours,threshold=math.cos(1.0*math.pi/180.0)):
                 # then add the point to the new line
                 v1=np.array([p[0]-new_line[-1][0],p[1]-new_line[-1][1]])
                 v2=np.array([p[0]-last_point[0],p[1]-last_point[1]])
-                cos_theta=np.dot(v1,v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
-                if cos_theta<threshold:
-                    new_line.append(last_point)
+                v1norm=np.linalg.norm(v1)
+                v2norm=np.linalg.norm(v2)
+                if v1norm>0 and v2norm>0:
+                    #cos_theta=np.dot(v1,v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
+                    cos_theta=np.dot(v1,v2)/(v1norm*v2norm)
+                    if cos_theta<threshold:
+                        new_line.append(last_point)
+                else:
+                    LOG.warning( "Zero encountered while calculating angle, p=(%f,%f), last point=(%f,%f), new line=(%f,%f)",p[0],p[1],last_point[0],last_point[1],new_line[-1][0],new_line[-1][1])
                 last_point=p
             # Always have the last point
             new_line.append(line[-1])
@@ -176,5 +185,5 @@ xmlns="http://www.w3.org/2000/svg"
     for c,lines in contours.items():
         for n,line in enumerate(lines.lines):
             d="M "+" ".join([(format+" "+format)%(col,row) for row,col in line])
-            paths.append('<path id="contour_%(value)s_%(segment)d" class="contour_%(value)s segment_%(segment)d" d="%(line)s"/>'%{'value':c,'segment':n,'line':d})
+            paths.append('<path id="contour_%(value)s_%(segment)d" class="contour_%(value)s segment_%(segment)d" d="%(line)s"/>'%{'value':c.replace('.','_'),'segment':n,'line':d})
     return svg_tmpl%(height,width,"\n   ".join(paths))

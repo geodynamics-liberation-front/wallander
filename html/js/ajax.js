@@ -56,6 +56,31 @@ function httpCall(url,response,type,args,post)
 	return r.response
 }
 
+var DOMURL = window.URL || window.webkitURL || window;
+
+function loadSVG(url,img,style_text)
+{
+	documentCall(url,svgLoaded,{img:img,style:style_text})
+}
+
+function svgLoaded(doc,arg)
+{
+	var svg=doc.rootElement
+	var img=arg.img
+	var style=document.createElement('style')
+	style.innerHTML=arg.style
+	svg.insertBefore(style,svg.children[0])
+
+	var svgBlob = new Blob([svg.outerHTML], {type: 'image/svg+xml;charset=utf-8'});
+	var url = DOMURL.createObjectURL(svgBlob);
+	if( !('DOMURL' in img ) )
+	{
+		img.DOMURL=DOMURL
+		img.addEventListener('load',function (e) { img.DOMURL.revokeObjectURL(url) })
+	}
+	arg.img.src=url
+}
+
 function log(v)
 {
 	console.log(v);

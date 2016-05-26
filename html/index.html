@@ -131,7 +131,9 @@ margin-left: -20px
 		<div id="depiction_object_display"></div>
 </div>
 
+<!-- TODO: switch to HTML5 template element? -->
 <div class="templates depiction_display">
+
 	<div id="data_field_template">
 		<div class="data_field_status">
 <span class="data_field_name label">name</span>
@@ -163,11 +165,28 @@ margin-left: -20px
 <tbody class="data_field_contour_options">
 <tr><td colspan="3" style="text-align: center">contour options</td></tr>
 <tr><td>opacity</td><td colspan="2"><input type='range' class="data_field_contour_opacity" min="0.0" max="1.0" step="0.01"/></td></tr>
+<tr><td colspan="3"><input type="button" class="data_field_contour_add" value="add contour"/></td></tr>
 </tbody>
 </table>
 		</div>
-	</div>
-</div>
+	</div> <!-- data_field_template -->
+<!-- Contour field template -->
+<!-- TODO: Add dash? -->
+<table>
+<tr id="data_field_contour_field_template">
+	<td>&nbsp;</td>
+	<td>
+		<input class="data_field_contour_value" placeholder="value" /> 
+		<input class="data_field_contour_width" placeholder="width" type="number" min="0.1" max="10.0" step="0.1"/>
+	</td>
+	<td>
+		<input class="data_field_contour_color"/>
+		<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object><span title="delete" class="tooltip"></span>
+	</td>
+</tr>
+</table>
+
+</div> <!-- templates -->
 
 <div id="dialog">
 	<iframe src="open_dataset"></iframe>

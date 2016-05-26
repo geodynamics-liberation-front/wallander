@@ -421,9 +421,9 @@ Movie.prototype.call = function(display)
 		if( df.visible )
 		{
 			var images=df.getImages()
-			for( var i=0; i<images.length; i++ )
+			for( var j=0; j<images.length; j++ )
 			{
-				var image=images[i]
+				var image=images[j]
 				if( image.opacity>0 )
 				{
 					display.paper.globalAlpha=image.opacity

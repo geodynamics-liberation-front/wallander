@@ -5,6 +5,7 @@ import re
 import response
 import Queue
 import contour
+from . import data_providers
 from matplotlib.pylab import Normalize, register_cmap, colormaps, get_cmap
 from matplotlib.colors import LinearSegmentedColormap 
 from threading import Thread
@@ -33,42 +34,38 @@ COLORBAR_ARRAY_UNDER=np.tile(np.concatenate((-1*np.ones(10),np.linspace(0,255,24
 COLORBAR_ARRAY_OVER= np.tile(np.concatenate((np.linspace(0,255,246),256*np.ones(10))),(10,1))
 COLORBAR_ARRAY_UNDER_OVER=np.tile(np.concatenate((-1*np.ones(10),np.linspace(0,255,236),256*np.ones(10))),(10,1))
 
-class FrameDataProvider(object):
-    def __call__(self,environ,start_response,path):
+class FrameDataProvider(data_providers.BaseDataProvider):
+    def __init__(self):
+        pass
+
+    def call(self,environ,start_response,path):
         LOG.debug('Path: %s',path)
         image_file=os.path.join(configuration['frame_dir'],*path)
         LOG.debug("Image file: %s",image_file)
-        if len(path)>0 and path[0][0:1]=='_':
-            try:
-                f=getattr(self,path[0])
-                return f(environ,start_response,path[1:])
-            except AttributeError:
-                return response.respond_not_found(start_response)
-        else:
-            data_provider=path.pop(0)
-            image=path.pop()
-            LOG.debug("Data provider name: '%s'",data_provider)
-            LOG.debug("Frame: '%s'",image)
-            m=FRAME_RE.match(image)
-            if m:
-                image_dir=os.path.dirname(image_file)
-                if not os.path.exists(image_dir):
-                    os.makedirs(image_dir)
+        data_provider=path.pop(0)
+        image=path.pop()
+        LOG.debug("Data provider name: '%s'",data_provider)
+        LOG.debug("Frame: '%s'",image)
+        m=FRAME_RE.match(image)
+        if m:
+            image_dir=os.path.dirname(image_file)
+            if not os.path.exists(image_dir):
+                os.makedirs(image_dir)
 
-                field,renderer_string,frame_number,extension=m.groups()
-                frame_number=int(frame_number)
-                LOG.debug("Field: %s, Frame Number: %d, Renderer: %s, Extension %s",field,frame_number,renderer_string,extension)
-                path.append(field)
-                path.append(str(frame_number))
-                dp=configuration['data_providers'].get(data_provider)
-                LOG.debug("Data provider: %s",str(dp))
-                frame=dp.call(environ,start_response,path)
-                renderer=get_renderer(renderer_string)
-                renderer.write(frame,image_file)
-                return response.respond_file(image_file,environ,start_response)
-            else:
-                LOG.warning('%s does not match regular expression',image)
-                return response.respond_not_found(start_response)
+            field,renderer_string,frame_number,extension=m.groups()
+            frame_number=int(frame_number)
+            LOG.debug("Field: %s, Frame Number: %d, Renderer: %s, Extension %s",field,frame_number,renderer_string,extension)
+            path.append(field)
+            path.append(str(frame_number))
+            dp=configuration['data_providers'].get(data_provider)
+            LOG.debug("Data provider: %s",str(dp))
+            frame=dp.call(environ,start_response,path)
+            renderer=get_renderer(renderer_string)
+            renderer.write(frame,image_file)
+            return open(image_file,'rb')
+        else:
+            LOG.warning('%s does not match regular expression',image)
+            return None
 
     def _render_all(self,environ,start_Response,path):
         pass
@@ -89,44 +86,38 @@ class FrameDataProvider(object):
         renderer.write(array,image_file)
         return response.respond_file(image_file,environ,start_response)
 
-class ContourDataProvider(object):
-    def __call__(self,environ,start_response,path):
+class ContourDataProvider(data_providers.BaseDataProvider):
+    def __init__(self):
+        pass
+
+    def call(self,environ,start_response,path):
         LOG.debug('Path: %s',path)
         image_file=os.path.join(configuration['frame_dir'],*path)
         LOG.debug("Image file: %s",image_file)
-        if len(path)>0 and path[0][0:1]=='_':
-            try:
-                f=getattr(self,path[0])
-                return f(environ,start_response,path[1:])
-            except AttributeError:
-                return response.respond_not_found(start_response)
+        data_provider=path.pop(0)
+        image=path.pop()
+        LOG.debug("Data provider name: '%s'",data_provider)
+        LOG.debug("Frame: '%s'",image)
+        m=FRAME_RE.match(image)
+        if m:
+            image_dir=os.path.dirname(image_file)
+            if not os.path.exists(image_dir):
+                os.makedirs(image_dir)
+
+            field,contour_string,frame_number,extension=m.groups()
+            frame_number=int(frame_number)
+            contours=contour_string.split('_')
+            LOG.debug("Field: %s, Frame Number: %d, Contour: %s, Extension %s",field,frame_number,contour_string,extension)
+            path.append(field)
+            path.append(str(frame_number))
+            dp=configuration['data_providers'].get(data_provider)
+            LOG.debug("Data provider: %s",str(dp))
+            frame=dp.call(environ,start_response,path)
+            contour.write_contour(frame,contours,image_file)
+            return open(image_file,'rb')
         else:
-            data_provider=path.pop(0)
-            image=path.pop()
-            LOG.debug("Data provider name: '%s'",data_provider)
-            LOG.debug("Frame: '%s'",image)
-            m=FRAME_RE.match(image)
-            if m:
-                image_dir=os.path.dirname(image_file)
-                if not os.path.exists(image_dir):
-                    os.makedirs(image_dir)
-
-                field,contour_string,frame_number,extension=m.groups()
-                frame_number=int(frame_number)
-                contours=contour_string.split('_')
-                LOG.debug("Field: %s, Frame Number: %d, Contour: %s, Extension %s",field,frame_number,contour_string,extension)
-
-                path.append(field)
-                path.append(str(frame_number))
-                dp=configuration['data_providers'].get(data_provider)
-                LOG.debug("Data provider: %s",str(dp))
-                frame=dp.call(environ,start_response,path)
-
-                contour.write_contour(frame,contours,image_file)
-                return response.respond_file(image_file,environ,start_response)
-            else:
-                LOG.warning('%s does not match regular expression',image)
-                return response.respond_not_found(start_response)
+            LOG.warning('%s does not match regular expression',image)
+            return None
 
     def _render_all(self,environ,start_Response,path):
         pass

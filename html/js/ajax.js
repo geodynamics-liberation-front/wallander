@@ -1,3 +1,5 @@
+"use strict";
+
 function httpRequest()
 {
 	var request
@@ -54,6 +56,35 @@ function httpCall(url,response,type,args,post)
 	r.open(post?"POST":"GET", url, response!=undefined);
 	r.send(post);
 	return r.response
+}
+
+function JSONResourceBundle(urls,callback,args)
+{
+	this.responses={}
+	this.response_count=0
+	this.callback=callback
+	this.args=args
+	this.urls=urls	
+}
+
+JSONResourceBundle.prototype.load = function()
+{
+	var self=this
+	for( var i=0; i<this.urls.length; i++ )
+	{
+		jsonCall(this.urls[i],function(response,url){self.loaded(response,url)},this.urls[i])
+	}
+}
+
+JSONResourceBundle.prototype.loaded = function(response,url)
+{
+	this.response_count++
+	this.responses[url]=response
+	console.log('loaded ['+this.response_count+'/'+this.urls.length+'] :'+url)
+	if(this.response_count==this.urls.length)
+	{
+		this.callback(this,this.args)
+	}
 }
 
 var DOMURL = window.URL || window.webkitURL || window;

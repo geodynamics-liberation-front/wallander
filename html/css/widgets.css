@@ -59,7 +59,7 @@
 }
 
 .dropdown.closed::before {
-	content: "\25B8\00A0"; /* Trhiange pointing right */
+	content: "\25B8\00A0"; /* Triangle pointing right */
 }
 
 .dropdown.open::before {

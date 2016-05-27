@@ -10,5 +10,20 @@
 	{
 		document.getElementById('img').style.filter=hl?'':'url(#grayscale)'
 	}
+	var _value=false
+	highlight(_value)
+
+	Object.defineProperty(document.defaultView,'value',
+    {enumerable: true,
+     get: function() { return _value;},
+     set: function(value)
+        {   
+            if( value!=_value )
+            {   
+				_value=value
+				highlight(value)
+            }   
+        }   
+    }) 
   ]]></script>
 </svg>

@@ -14,8 +14,8 @@ function ColormapSelector(input,url)
 
 	this.input=input
 	this._value=input.value
-	this.input.addEventListener('change',function(e) { self.value=e.target.value; })
 	this.input.style.display='None'
+	this.input.addEventListener('change',function(e) { self.value=e.target.value; })
 	this.height=95
 	this.selector=document.createElement('div')
 	this.selector.className='colormap_selector'
@@ -108,7 +108,7 @@ ColormapSelector.prototype.select = function(colormap)
 
 ColormapSelector.prototype.populate = function(colormaps)
 {
-	// Remove the existing opetions
+	// Remove the existing options
 	this.colormaps=colormaps
 	while( this.input.children.length>0 ) { this.input.removeChild(this.input.children[0]) }
 	for( var i=0; i<colormaps.length; i++ )

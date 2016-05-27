@@ -1,5 +1,5 @@
 OUTPUT_SCRIPT=../widgets.js
-SCRIPTS=colormap_selector.js color_picker.js drop_down.js widgets.js
+SCRIPTS=widgets.js colormap_selector.js color_picker.js drop_down.js svg_button.js 
 
 ${OUTPUT_SCRIPT} : ${SCRIPTS}
 	touch ${OUTPUT_SCRIPT}

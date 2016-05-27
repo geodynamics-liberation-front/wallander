@@ -283,7 +283,7 @@ Display.prototype.redraw = function()
 	{
 		if( this.depiction_mgr.depictions[i].display )
 		{
-			this.depiction_mgr.depictions[i].call(this);
+			this.depiction_mgr.depictions[i].draw(this);
 		}
 	}
 }

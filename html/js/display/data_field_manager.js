@@ -138,7 +138,6 @@ DataFieldManager.prototype.setReferenceDataField = function(data_field)
 		editor.appendChild(data_field.time_unit_select)
 		editor.appendChild(data_field.time_format_input)
 
-
 		var editor=display.status_mgr.statuses['dimensional_xy'].status_editor
 		editor.innerHTML=''
 		editor.appendChild(data_field.dimension_unit_select)
@@ -396,18 +395,16 @@ ScalarDataField.prototype.getBounds = function()
 ScalarDataField.prototype.serialize = function()
 {
 	var serialized_data_field = Object.getPrototypeOf(ScalarDataField.prototype).serialize.call(this);
-// TODO: have frame and contour options serialize themselves
-	serialized_data_field.renderer=this.frame_options.renderer
-	serialized_data_field.frame_opacity=this.frame_options.opacity
+	serialized_data_field.frame_options=this.frame_options.serialize()
+	serialized_data_field.contour_options=this.frame_options.serialize()
 	return serialized_data_field
 }
 
 ScalarDataField.prototype.deserialize = function(serialized_data_field)
 {
 	Object.getPrototypeOf(ScalarDataField.prototype).deserialize.call(this,serialized_data_field);
-// TODO: have frame and contour options deserialize themselves
-	this.frame_options.renderer = serialized_data_field.renderer
-	this.frame_options.opacity=serialized_data_field.frame_opacity
+	this.frame_options.deserialize(serialized_data_field.frame_options)
+	this.contour_options.deserialize(serialized_data_field.contour_options)
 }
 
 function ContourOptions(data_field)
@@ -428,13 +425,11 @@ function ContourOptions(data_field)
 	this._contours=''
 	this._style=''
 
-	// Image button
+	// Dispaly button
 	this.table=data_field.html_display.getElementsByClassName('data_field_contour_options')[0]
 	this.table.style.display=this._show?'':'none'
-	var svg_obj=data_field.html_display.getElementsByClassName('data_field_control_contour')[0]
-	this.svg=svg_obj.getSVGDocument()
-	svg_obj.addEventListener('load',function (e) { self.svg=e.target.getSVGDocument()})
-	svg_obj.nextElementSibling.addEventListener('click',function(e) { self.show=!self.show })
+	this.display_btn=new SVGToggleButton(data_field.html_display.getElementsByClassName('data_field_control_contour')[0],this._show)
+	this.display_btn.addEventListener('change', function (e) { self.show=e.value } )
 
 	// The opacity slider
 	this.opacity_range=data_field.html_display.getElementsByClassName('data_field_contour_opacity')[0]
@@ -467,6 +462,39 @@ ContourOptions.prototype.updateContours = function(e)
 	}
 }
 
+ContourOptions.prototype.serialize = function()
+{
+	var so={}
+	so.opacity=this.opacity
+	so.show=this.show
+	so.levels=[]
+	so.widths=[]
+	so.colors=[]
+	for( var i=0; i<this.contour_levels.length; i++ )
+	{
+		so.levels.push(this.contour_levels[i].value)
+		so.widths.push(this.contour_levels[i].width)
+		so.colors.push(this.contour_levels[i].color)
+	}
+	return so
+}
+
+ContourOptions.prototype.deserialize = function(so)
+{
+	this.allow_updates=false
+	this.opacity=so.opacity
+	this.show=so.show
+	for( var i=0; i<so.levels.length; i++ )
+	{
+		var c = this.addContourFields()
+		c.value=so.levels[i]
+		c.width=so.widths[i]
+		c.color=so.colors[i]
+	}
+	this.allow_updates=true
+	this.updateContours()
+}
+
 Object.defineProperty(ContourOptions.prototype,'style', {enumerable: true, get: function() { return this._style;}})
 
 Object.defineProperty(ContourOptions.prototype,'show',
@@ -478,7 +506,7 @@ Object.defineProperty(ContourOptions.prototype,'show',
 			{
 				if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
 				this._show=show
-				this.svg.defaultView.highlight(show)
+				this.display_btn.value=show
 				this.table.style.display=show?'':'none'
 				this._projector.redraw()
 			}
@@ -520,7 +548,9 @@ ContourOptions.prototype.addContourFields = function()
 	var row=document.getElementById('data_field_contour_field_template').cloneNode(true)
 	row.id=''
 	this.table.appendChild(row)
-	this.contour_levels.push(new Contour(this,row))
+	var contour=new Contour(this,row)
+	this.contour_levels.push(contour)
+	return contour
 }
 
 function Contour(contour_options,row)
@@ -620,13 +650,11 @@ function FrameOptions(data_field)
 	this._overcolor=renderer.overcolor
 	this._renderer=''
 
-	// Image button
+	// Display button
 	this.table=data_field.html_display.getElementsByClassName('data_field_frame_options')[0]
 	this.table.style.display=this._show?'':'none'
-	var svg_obj=data_field.html_display.getElementsByClassName('data_field_control_frame')[0]
-	this.svg=svg_obj.getSVGDocument()
-	svg_obj.addEventListener('load',function (e) { self.svg=e.target.getSVGDocument()})
-	svg_obj.nextElementSibling.addEventListener('click',function(e) { self.show=!self.show })
+	this.display_btn=new SVGToggleButton(data_field.html_display.getElementsByClassName('data_field_control_frame')[0],this._show)
+	this.display_btn.addEventListener('change', function (e) { self.show=e.value } )
 
 	// The opacity slider
 	this.opacity_range=data_field.html_display.getElementsByClassName('data_field_frame_opacity')[0]
@@ -683,6 +711,25 @@ FrameOptions.prototype.updateRenderer = function(e)
 	}
 }
 
+FrameOptions.prototype.serialize = function()
+{
+	var so={}
+	so.opacity=this.opacity
+	so.show=this.show
+	so.renderer=this.renderer
+	so.opacity=this.opacity
+}
+
+FrameOptions.prototype.deserialize = function(so)
+{
+	this.allow_updates=false
+	this.renderer=so.renderer
+	this.opacity=so.opacity
+	this.show=so.show
+	this.allow_updates=false
+	this.updateRenderer()
+}
+
 Object.defineProperty(FrameOptions.prototype,'show',
     {enumerable: true,
      get: function() { return this._show;},
@@ -692,7 +739,7 @@ Object.defineProperty(FrameOptions.prototype,'show',
 			{
 				if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
 				this._show=show
-				this.svg.defaultView.highlight(show)
+				this.display_btn.value=show
 				this.table.style.display=show?'':'none'
 				this.data_field.data_field_mgr.display.projector.redraw()
 			}

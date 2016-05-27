@@ -3,13 +3,14 @@
  */
 function Line(x0,y0,x1,y1)
 {	
-	this.editable=true;
-	this.display=true;
-	this.selected=false;
-	this.style="#ff0000";
-	this.lineWidth=1;
-	this.setStart(x0||0,y0||0);
-	this.setEnd(x1||0,y1||0);
+	this.editable=true
+	this.display=true
+	this.selected=false
+	this.style="#ff0000"
+	this.lineWidth=1
+	this.scale=true
+	this.setStart(x0||0,y0||0)
+	this.setEnd(x1||0,y1||0)
 }
 
 Line.prototype.getEditor = function() { return 'line_editor'; }
@@ -38,7 +39,7 @@ Line.prototype.getBounds = function()
             height: Math.abs(this.y0-this.y1)};
 }
 
-Line.prototype.call = function(display)
+Line.prototype.draw = function(display)
 {
 	if( this.selected )
 	{
@@ -68,19 +69,11 @@ Line.prototype.clone = function()
 
 function Measure(x0,y0,x1,y1)
 {	
-	this.editable=true;
-	this.display=true;
-	this.selected=false;
-	this.style="#ff0000";
+	Line.call(this,x0,y0,x1,ys)
 	this.size=18;
 	this.text=""
-	this.setStart(x0||0,y0||0);
-	this.setEnd(x1||0,y1||0);
 }
 Measure.prototype = new Line;
-Measure.prototype.super_call = Measure.prototype.call;
-Measure.prototype.super_setStart = Measure.prototype.setStart;
-Measure.prototype.super_setEnd = Measure.prototype.setEnd;
 
 Measure.prototype.measure = function()
 {
@@ -94,21 +87,21 @@ Measure.prototype.measure = function()
 
 Measure.prototype.setStart  = function(x,y)
 {
-	this.super_setStart(x,y);
+	Object.getPrototypeOf(Measure.prototype).setStart.call(this,x,y);
 	this.measure();
 }
 
 Measure.prototype.setEnd  = function(x,y)
 {
-	this.super_setEnd(x,y);
+	Object.getPrototypeOf(Measure.prototype).setEnd.call(this,x,y);
 	this.measure();
 }
 
-Measure.prototype.call = function(display)
+Measure.prototype.draw = function(display)
 {
 
 	// Draw the line
-	this.super_call(display);
+	Object.getPrototypeOf(Measure.prototype).draw.call(this,x,y);
 
 	display.paper.translate(-display.x,-display.y)
 	display.paper.scale(1.0/display.zoom_level,1.0/display.zoom_level);
@@ -174,7 +167,7 @@ Marker.prototype.getBounds = function()
             height: this.size*3};
 }
 
-Marker.prototype.call = function(display)
+Marker.prototype.draw = function(display)
 {
 	var p = display.paper;
 	if( this.selected )
@@ -239,7 +232,7 @@ Circle.prototype.getBounds = function()
             height: 2*r};
 }
 
-Circle.prototype.call = function(display)
+Circle.prototype.draw = function(display)
 {
 	var p = display.paper;
 	p.beginPath();
@@ -278,7 +271,7 @@ Point.prototype.setXY = function(x,y)
 	this.y=Math.floor(y);
 }
 
-Point.prototype.call = function(display)
+Point.prototype.draw = function(display)
 {
 	var p = display.paper;
 	p.fillStyle=this.fillStyle;
@@ -294,7 +287,7 @@ function Background(src)
 	this.img.src=src||"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAoSURBVBiVY/z//z8DOtiyZQuGIBOGKhxgABWyYHO4j48PI+2tpr5CAKIuCi6gLUyOAAAAAElFTkSuQmCC"
 }
 
-Background.prototype.call = function(display)
+Background.prototype.draw = function(display)
 {
 	var pattern = display.paper.createPattern(this.img,"repeat");
 	display.paper.translate(-display.x,-display.y)
@@ -413,7 +406,7 @@ Movie.prototype.toString = function()
 	return "Movie";
 }
 
-Movie.prototype.call = function(display)
+Movie.prototype.draw = function(display)
 {
 	for( var i=0; i<this.z_order.length; i++)
 	{

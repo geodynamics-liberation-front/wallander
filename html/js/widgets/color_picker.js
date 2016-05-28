@@ -545,7 +545,7 @@ ColorPicker.prototype.set_color = function()
 
 	if( this._H0!=this._H || this._S0!=this._S || this._V0!=this._V || this._alpha0!=this._alpha || this._nocolor0!=this._nocolor)
 	{
-		var e={name:'change',target: this}
+		var e={target: this}
 		e.old_value=this._nocolor0?null:rgb2hex.apply(rgb2hex,hsv2rgb(this._H0,this._S0,this._V0,this._alpha0))
 		e.value=this._nocolor?null:rgb2hex.apply(rgb2hex,hsv2rgb(this._H,this._S,this._V,this._alpha))
 		this._H0=this._H

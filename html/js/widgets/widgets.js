@@ -13,13 +13,14 @@ EventBroadcaster.prototype.addEventListener = function(type,listener)
 }
 
 EventBroadcaster.prototype.broadcastEvent = 
-EventBroadcaster.prototype.dispatchEvent = function(event_name,e)
+EventBroadcaster.prototype.dispatchEvent = function(event_type,e)
 {
-    if(event_name in this.listeners)
+    if(event_type in this.listeners)
     {   
-        for( var n=0; n<this.listeners[event_name].length; n++)
+		e.type=event_type
+        for( var n=0; n<this.listeners[event_type].length; n++)
         {
-            this.listeners[event_name][n].apply(this,[e]);
+            this.listeners[event_type][n].apply(this,[e]);
         }
     }   
 }
@@ -30,12 +31,24 @@ var regex={
 	float: '[+-]?\\d+(?:\\.?\\d*)?(?:e[+-]?\\d+)?',
 	hex: '[a-fA-F0-9]*' }
 
-function event_xy(e,elem)
+function event_xy(e,elem,relative_content)
 {
 	var cr=elem.getBoundingClientRect()
+	if ( relative_content )
+	{
+		var s=getComputedStyle(elem)
+		return {
+			x: e.clientX-cr.left-(parseInt(s.borderLeft)+parseInt(s.paddingLeft)),
+			y: e.clientY-cr.top -(parseInt(s.borderTop )-parseInt(s.paddingTop )),
+			width: cr.width-(parseInt(s.borderLeft)+parseInt(s.borderRight)+parseInt(s.paddingLeft)+parseInt(s.paddingRight)),
+			height: cr.height-(parseInt(s.borderTop)+parseInt(s.borderBottom)+parseInt(s.paddingLeft)+parseInt(s.paddingBottom)),
+			client_rect: cr
+		}
+	}
 	return {
-		x: e.clientX-cr.left,
-		y: e.clientY-cr.top
+		x: e.clientX-cr.left-(parseInt(s.borderLeft)+parseInt(s.paddingLeft)),
+		y: e.clientY-cr.top -(parseInt(s.borderTop )-parseInt(s.paddingTop )),
+		client_rect: cr
 	}
 }
 

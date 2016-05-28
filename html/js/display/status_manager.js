@@ -3,6 +3,7 @@
  */
 function StatusManager(elem,display)
 {
+	Manager.call(this)
 	this.elem=elem
 	this.display=display
 	this.status_bar=document.createElement('div')
@@ -14,6 +15,7 @@ function StatusManager(elem,display)
 	this.status_names=[]
 	this.statuses={}
 }
+StatusManager.prototype = Object.create(Manager.prototype)
 
 StatusManager.prototype.add_status = function(name,display_name,short_name)
 {

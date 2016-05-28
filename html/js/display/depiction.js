@@ -374,12 +374,16 @@ Movie.prototype.reset = function()
 
 Movie.prototype.loaded = function(e)
 {
-	this.loaded_frames++
-	if( this.loaded_frames>=this.expected_frames )
+	if( this.expected_frames>0 )
 	{
-		this.expected_frames=0
-		this.loaded_frames=0
-		this.broadcastEvent('load',e);
+		this.loaded_frames++
+		console.log('frame ['+this.loaded_frames+'/'+this.expected_frames+']')
+		if( this.loaded_frames>=this.expected_frames )
+		{
+			this.expected_frames=0
+			this.loaded_frames=0
+			this.broadcastEvent('load',e);
+		}
 	}
 }
 

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+<!-- Data Field Template -->
+	<div id="data_field_template">
+		<div class="data_field_status">
+<span class="data_field_name label">name</span>
+<span class="data_field_value">value</span>
+		</div>
+		<div class="data_field_details">
+<table>
+<tbody class="data_field_options">
+<tr><td colspan="3"> 
+<object height="20" class="data_field_control_up" type="image/svg+xml" data="/img/up.svg"></object>
+<object height="20" class="data_field_control_down" type="image/svg+xml" data="/img/down.svg"></object>
+<object height="20" class="data_field_control_delete" type="image/svg+xml" data="/img/trashcan.svg"></object>
+<object height="20" class="data_field_control_frame" type="image/svg+xml" data="/img/raster.svg"></object>
+<object height="20" class="data_field_control_contour" type="image/svg+xml" data="/img/contour.svg"></object>
+<object height="20" class="data_field_control_reference" type="image/svg+xml" data="/img/star.svg"></object>
+<object height="20" class="data_field_control_link_frames" type="image/svg+xml" data="/img/film.svg"></object>
+<object height="20" class="data_field_control_link_time" type="image/svg+xml" data="/img/clock.svg"></object>
+</td></tr>
+<tr><td>unit/format</td><td><select class="data_field_unit"></select></td><td><input type="text" class="data_field_format" placeholder="format"/></td></tr>
+</tbody>
+<tbody class="data_field_frame_options">
+<tr><td colspan="3" style="text-align: center">image options</td></tr>
+<tr><td>opacity</td><td colspan="2"><input type='range' class="data_field_frame_opacity" min="0.0" max="1.0" step="0.01"/></td></tr>
+<tr><td>colormap:</td><td colspan="2"><select class="data_field_colormap"></select></td></tr>
+<tr><td>min/max</td><td><input type="text" class="data_field_min" placeholder="minimum value"/></td><td><input type="text" class="data_field_max" placeholder="maximum value"/></td></tr>
+<tr><td>under/over color</td><td><input class="data_field_under"/></td><td><input class="data_field_over"/></td>
+<tr><td>log scale:</td><td colspan="2"> <input type="checkbox" class="data_field_log"/> </td><tr>
+</tbody>
+<tbody class="data_field_contour_options">
+<tr><td colspan="3" style="text-align: center">contour options</td></tr>
+<tr><td>opacity</td><td colspan="2"><input type='range' class="data_field_contour_opacity" min="0.0" max="1.0" step="0.01"/></td></tr>
+<tr><td colspan="3"><input type="button" class="data_field_contour_add" value="add contour"/></td></tr>
+</tbody>
+</table>
+		</div>
+	</div> <!-- data_field_template -->
+
+<!-- Contour field template -->
+<table>
+<tr id="data_field_contour_field_template">
+	<td>&nbsp;</td>
+	<td>
+		<input class="data_field_contour_value" placeholder="value" /> 
+		<input class="data_field_contour_width" placeholder="width" type="number" min="0.1" max="10.0" step="0.1"/>
+	</td>
+	<td>
+		<input class="data_field_contour_color"/>
+		<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object>
+	</td>
+</tr>
+</table>
+
+</body>
+</html>

@@ -1,13 +1,33 @@
 /*
  * The data field manager
  */
+function AbstractManager()
+{
+	Manager.call(this)
+}
+AbstractManager.prototype = Object.create(Manager.prototype)
+
 function DataFieldManager(elem,display)
 {
+	Manager.call(this)
+	var self=this
 	this.html_element=elem
 	this.display=display
 	this.reference_data_field=null;
 	this.data_field_paths=[]
 	this.data_fields={}
+	this.templates
+}
+DataFieldManager.prototype = Object.create(Manager.prototype)
+
+DataFieldManager.prototype.load = function()
+{
+	var self=this
+	documentCall('/templates/data_field.html',
+		function(d) { 
+			self.templates=d 
+			self.broadcastEvent('load',{target:self})
+	})
 }
 
 DataFieldManager.prototype.serialize = function()
@@ -167,8 +187,8 @@ function DataField(native_data_field,data_field_mgr)
 	this._dimension_unit=this.native.dimension_unit
 	this._dimension_format=this.native.dimension_format
 	this.visible=true
-	
-	this.html_display=document.getElementById('data_field_template').cloneNode(true)
+
+	this.html_display=data_field_mgr.templates.getElementById('data_field_template').cloneNode(true)
 	this.html_display.id=this.path
 	data_field_mgr.html_element.appendChild(this.html_display)
 	new Dropdown(this.html_display.getElementsByClassName('data_field_status')[0], this.html_display.getElementsByClassName('data_field_details')[0])
@@ -189,7 +209,6 @@ function DataField(native_data_field,data_field_mgr)
 	this.format_input=this.html_display.getElementsByClassName('data_field_format')[0]
 	this.format_input.value=this.native.format
 	this.format_input.addEventListener('change',function(e) {self.format=e.target.value})
-
 
 	// The time unit selector
 	this.time_unit_select=document.createElement('select')
@@ -441,6 +460,64 @@ function ContourOptions(data_field)
 	this.add_button.addEventListener('click',function(e) { self.addContourFields() })
 }
 
+Object.defineProperty(ContourOptions.prototype,'style', {enumerable: true, get: function() { return this._style;}})
+
+Object.defineProperty(ContourOptions.prototype,'show',
+    {enumerable: true,
+     get: function() { return this._show;},
+     set: function(show)
+        {
+			if( show!=this._show )
+			{
+				if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
+				this._show=show
+				this.display_btn.value=show
+				this.table.style.display=show?'':'none'
+				this._projector.redraw()
+			}
+        }
+    })
+
+Object.defineProperty(ContourOptions.prototype,'opacity',
+    {enumerable: true,
+     get: function() { return this._opacity;},
+     set: function(opacity)
+        {
+			opacity=parseFloat(opacity)
+			if( opacity!=this._opacity )
+			{
+				if(isNaN(opacity)) opacity=1.0
+				if( opacity<0 || opacity>1.0 ) throw new Error("Opacity must be bteween 0.0 and 1.0 (inclusive)")
+				this._opacity=opacity
+				if( this.opacity_range.value!=opacity ) this.opacity_range.value=opacity 
+				this._projector.redraw()
+			}
+        }
+    })
+
+Object.defineProperty(ContourOptions.prototype,'contours',
+    {enumerable: true,
+     get: function() { return this._contours;},
+     set: function(contours)
+        {
+			if( contours!=this._contours )
+			{
+				this.contour_levels=contours.split()
+				this.updateContours()
+			}
+        }
+    })
+
+ContourOptions.prototype.addContourFields = function()
+{
+	var row=data_field.data_field_mgr.templates.getElementById('data_field_contour_field_template').cloneNode(true)
+	row.id=''
+	this.table.appendChild(row)
+	var contour=new Contour(this,row)
+	this.contour_levels.push(contour)
+	return contour
+}
+
 ContourOptions.prototype.updateContours = function(e)
 {
 	if( this.allow_updates )
@@ -495,63 +572,6 @@ ContourOptions.prototype.deserialize = function(so)
 	this.updateContours()
 }
 
-Object.defineProperty(ContourOptions.prototype,'style', {enumerable: true, get: function() { return this._style;}})
-
-Object.defineProperty(ContourOptions.prototype,'show',
-    {enumerable: true,
-     get: function() { return this._show;},
-     set: function(show)
-        {
-			if( show!=this._show )
-			{
-				if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
-				this._show=show
-				this.display_btn.value=show
-				this.table.style.display=show?'':'none'
-				this._projector.redraw()
-			}
-        }
-    })
-
-Object.defineProperty(ContourOptions.prototype,'opacity',
-    {enumerable: true,
-     get: function() { return this._opacity;},
-     set: function(opacity)
-        {
-			opacity=parseFloat(opacity)
-			if( opacity!=this._opacity )
-			{
-				if(isNaN(opacity)) opacity=1.0
-				if( opacity<0 || opacity>1.0 ) throw new Error("Opacity must be bteween 0.0 and 1.0 (inclusive)")
-				this._opacity=opacity
-				if( this.opacity_range.value!=opacity ) this.opacity_range.value=opacity 
-				this._projector.redraw()
-			}
-        }
-    })
-
-Object.defineProperty(ContourOptions.prototype,'contours',
-    {enumerable: true,
-     get: function() { return this._contours;},
-     set: function(contours)
-        {
-			if( contours!=this._contours )
-			{
-				this.contour_levels=contours.split()
-				this.updateContours()
-			}
-        }
-    })
-
-ContourOptions.prototype.addContourFields = function()
-{
-	var row=document.getElementById('data_field_contour_field_template').cloneNode(true)
-	row.id=''
-	this.table.appendChild(row)
-	var contour=new Contour(this,row)
-	this.contour_levels.push(contour)
-	return contour
-}
 
 function Contour(contour_options,row)
 {

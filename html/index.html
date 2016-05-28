@@ -22,29 +22,16 @@ function init()
 		document.getElementById("depiction_object_display"),
 		document.getElementById("data_field_display"),
 		document.getElementById('status'))
-	// Add the background depiction
-	display.addDepiction(new Background(),0);
-	// Resize the screen
-	setTimeout( function(e) {display.resize();}, 10)
-	load_resources()
+	default_colormap_loader=new DefaultColormapLoader(config['frame_prefix']+'/_colormaps',resources_loaded)
+	var olg=new OnLoadGroup([display,default_colormap_loader],resources_loaded)	
+	olg.load()
 }
-
-// load any addiional resources, colormaps etc.
-function load_resources()
-{
-	// load the default colormaps
-	resource_count++
-	loadDefaultColormaps(config['frame_prefix']+'/_colormaps',resources_loaded)
-}
-
-var resource_count=0
 
 function resources_loaded()
 {
-	if( --resource_count == 0 ) 
-	{	
-		deseralized()
-	}
+	display.addDepiction(new Background(),0);
+	display.resize();
+	deseralized()
 }
 
 // Restore our previous state
@@ -53,7 +40,8 @@ function deseralized()
 	var serialid=document.location.hash.substring(1)
 	if(serialid)
 	{
-		display.restoreState(serialid,showPage)
+		var wf=new WaitFor([display,display.projector],['deserialized','load'],showPage)
+		display.restoreState(serialid)
 	}
 	else
 	{
@@ -64,6 +52,7 @@ function deseralized()
 // Finally - show the page
 function showPage()
 {
+	console.log('show page')
 	document.body.style.opacity="1"
 }
 

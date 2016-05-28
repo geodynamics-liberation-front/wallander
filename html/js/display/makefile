@@ -1,6 +1,6 @@
 DISPLAY=../wallander_display.js
 
-SCRIPTS=data_field_manager.js depiction.js depiction_manager.js display.js projector.js sprintf.js status_manager.js toolbox.js util.js
+SCRIPTS=display.js data_field_manager.js depiction.js depiction_manager.js projector.js sprintf.js status_manager.js toolbox.js util.js
 
 IMAGES=img/*
 IMAGE_DIR=../../img

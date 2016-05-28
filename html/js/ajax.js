@@ -58,6 +58,7 @@ function httpCall(url,response,type,args,post)
 	return r.response
 }
 
+
 function JSONResourceBundle(urls,callback,args)
 {
 	this.responses={}

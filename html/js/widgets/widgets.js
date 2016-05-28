@@ -25,6 +25,63 @@ EventBroadcaster.prototype.dispatchEvent = function(event_type,e)
     }   
 }
 
+function WaitFor(objects,events,callback,args)
+{
+	this.response_count=0
+	this.callback=callback
+	this.args=args
+	this.objs=objects	
+	var self=this
+	for( var i=0; i<this.objs.length; i++ )
+	{
+		var o=this.objs[i]
+		o.addEventListener(events[i],function() { self.ready(o) })
+	}
+}
+
+// TODO: remove listeners
+WaitFor.prototype.ready = function(o)
+{
+	this.response_count++
+	console.log('loaded ['+this.response_count+'/'+this.objs.length+'] :'+o)
+	if(this.response_count==this.objs.length)
+	{
+		this.callback(this,this.args)
+	}
+}
+
+function OnLoadGroup(objects,callback,args)
+{
+	this.response_count=0
+	this.callback=callback
+	this.args=args
+	this.objs=objects	
+}
+
+OnLoadGroup.prototype.load = function() 
+{
+	var self=this
+	for( var i=0; i<this.objs.length; i++ )
+	{
+		var o=this.objs[i]
+		o.addEventListener('load',function() { self.loaded(o) })
+		o.load()
+	}
+}
+
+// TODO: remove listeners
+OnLoadGroup.prototype.loaded = function(o)
+{
+	this.response_count++
+	console.log('loaded ['+this.response_count+'/'+this.objs.length+'] :'+o)
+	if(this.response_count==this.objs.length)
+	{
+		this.callback(this,this.args)
+	}
+}
+
+
+
 var regex={
 	letters_numbers: '[a-zA-Z0-9\-]*',
 	//letters_numbers: '[a-zA-Z0-9_]*',

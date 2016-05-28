@@ -3,6 +3,7 @@
  */
 function Projector(display)
 {
+	EventBroadcaster.call(this)
 	this.display=display;
 	// some listeners
 
@@ -27,6 +28,7 @@ function Projector(display)
 	this.player_controls.addEventListener('change',function(e) { self.goto(e.target.frame) })
 	this.player_controls.addEventListener('input',function(e) { self.updateStatus(e.target.frame) })
 }
+Projector.prototype = Object.create(EventBroadcaster.prototype)
 
 Projector.prototype.pause = function()
 {
@@ -139,7 +141,7 @@ Projector.prototype.loaded = function(e)
 		window.setTimeout(function() { self.next(); } ,(1000-(performance.now()-this.frameTime))/this.fps);
 	}
 	// TODO fire load event
-	//this.updateXY();
+	this.broadcastEvent('load',{target:this})
 }
 
 Projector.prototype.stopped = function(e)

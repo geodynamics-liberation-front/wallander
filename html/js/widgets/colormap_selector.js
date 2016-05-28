@@ -1,9 +1,17 @@
-var default_colormap_url
-var default_colormaps=[]
-function loadDefaultColormaps(url,callback)
+var default_colormap_loader
+
+function DefaultColormapLoader(url)
 {
-	default_colormap_url=url
-	jsonCall(default_colormap_url,function(cm) { default_colormaps=cm; if(callback) callback();})
+	EventBroadcaster.call(this)
+	this.url=url
+	this.colormaps
+}
+DefaultColormapLoader.prototype=Object.create(EventBroadcaster.prototype)
+
+DefaultColormapLoader.prototype.load = function()
+{
+	var self=this
+	jsonCall(this.url,function(cm) { self.colormaps=cm; self.broadcastEvent('load',{target:self});})
 }
 
 function ColormapSelector(input,url)
@@ -43,8 +51,8 @@ function ColormapSelector(input,url)
 	}
 	else
 	{
-		this.colormap_url=default_colormap_url
-		this.populate(default_colormaps.slice())
+		this.colormap_url=default_colormap_loader.url
+		this.populate(default_colormap_loader.colormaps.slice())
 	}
 }
 ColormapSelector.prototype = new EventBroadcaster
@@ -67,6 +75,7 @@ Object.defineProperty(ColormapSelector.prototype,'value',
         }   
     })
 
+ColormapSelector.prototype.load = 
 ColormapSelector.prototype.refresh = function()
 {
 	var self=this
@@ -128,6 +137,7 @@ ColormapSelector.prototype.populate = function(colormaps)
 	}
 	this.selected_colormap.src=config['frame_prefix']+'_colorbar/'+this._value+'.png'
 	this.selected_colormap.title=this._value
+	this.dispatchEvent('load',{target:this})
 }
 
 ColormapSelector.prototype.colormap_selector = function(c,f)

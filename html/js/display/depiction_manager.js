@@ -3,10 +3,12 @@
  */
 function DepictionManager(elem,display)
 {
+	Manager.call(this)
 	this.elem=elem;
 	this.display=display;
 	this.depictions=[];
 }
+DepictionManager.prototype = Object.create(Manager.prototype)
 
 DepictionManager.prototype.addDepiction = function (obj,n)
 {

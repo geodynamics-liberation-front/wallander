@@ -8,8 +8,8 @@
  */
 function Display(elem,depiction_elem,data_field_elem,status_elem)
 {
+	EventBroadcaster.call(this)
 	var self=this
-
 	// Our internal state
 	this.w=0;
 	this.h=0;
@@ -30,11 +30,7 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 
 	// create the status manager
 	this.status_mgr=new StatusManager(status_elem,this)
-	this.status_mgr.add_status('fps')
-	this.status_mgr.add_status('frame')
-	this.status_mgr.add_status('time')
-	this.status_mgr.add_status('xy')
-	this.status_mgr.add_status('dimensional_xy','dimensional xy','xy')
+
 
 	// Make the canvas
 	this.canvas=document.createElement("canvas");
@@ -65,7 +61,6 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.tool=null;
 	this.toolbox=new ToolBox(this);
 
-
 	// Register some events
 	var self=this;
 	this.container.addEventListener('mouseup',function() { self.resize(); }); 
@@ -81,8 +76,27 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.resize();
 	var rect = this.canvas.getBoundingClientRect();
 	this.lastXY=this.xy({clientX:rect.left,clientY:rect.top})
+}
+Display.prototype = Object.create(EventBroadcaster.prototype)
+
+Display.prototype.load = function()
+{
+	var self=this
+	var olg=new OnLoadGroup([this.depiction_mgr,this.data_field_mgr,this.status_mgr],function() { self.loaded() }) 
+	olg.load()
+}
+
+Display.prototype.loaded = function()
+{
+	console.log('Managers loaded')
+	this.status_mgr.add_status('fps')
+	this.status_mgr.add_status('frame')
+	this.status_mgr.add_status('time')
+	this.status_mgr.add_status('xy')
+	this.status_mgr.add_status('dimensional_xy','dimensional xy','xy')
 	this.updateXY()
 	this.projector.updateStatus()
+	this.broadcastEvent('load',{target:this})
 }
 
 Display.prototype.toString = function()
@@ -90,16 +104,11 @@ Display.prototype.toString = function()
 	return "Display[canvas#"+this.canvas.id+"]";
 }
 
-Display.prototype.restoreState = function(name,callback)
+Display.prototype.restoreState = function(name)
 {
 	var self=this
 	console.log("Restoring state "+name)
-	jsonCall('/wallander/s/'+name,function(state,callback) { self.stateRestored(state,callback) },callback)	
-}
-
-Display.prototype.stateRestored = function(state,callback)
-{
-	this.deserialize(state,callback)
+	jsonCall('/wallander/s/'+name,function(state) { self.deserialize(state) })	
 }
 
 Display.prototype.saveState = function()
@@ -121,15 +130,20 @@ Display.prototype.serialize = function()
 	return JSON.stringify(state)	
 }
 
-Display.prototype.deserialize = function(state,callback)
+Display.prototype.deserialize = function(state)
 {
+	var self=this
 	if( typeof(state)=='string' )	
 	{
 		state=JSON.parse(serialized_obj)
 	}
 	console.log(state)
 	this.status_mgr.deserialize(state.status_mgr)
-	this.data_field_mgr.deserialize(state.data_field_mgr,callback)
+	this.data_field_mgr.deserialize(state.data_field_mgr,function() { self.broadcastEvent('deserialized',{target:this}) })
+}
+
+Display.prototype.deserialized = function()
+{
 }
 
 Display.prototype.updateXY = function(e)
@@ -286,4 +300,13 @@ Display.prototype.redraw = function()
 	}
 }
 
+function Manager()
+{
+	EventBroadcaster.call(this)
+}
+Manager.prototype = Object.create(EventBroadcaster.prototype)
 
+Manager.prototype.load = function()
+{
+	this.broadcastEvent('load',{target:self})
+}

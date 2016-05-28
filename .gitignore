@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 # build locations and objects
-html/img
+html/img/*
 html/js/wallander_display.js
 html/js/widgets.js
 html/css/display.css

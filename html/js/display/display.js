@@ -43,22 +43,20 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.canvas.height=100;
 	this.canvas.tabIndex=0;
 	add_class(this.canvas,"wallander_canvas");
+
+	// The resize container
 	this.container=document.createElement("div");
 	add_class(this.container,"wallander_container");
 	this.container.appendChild(this.canvas);
 	elem.appendChild(this.container);
-	this.controls=document.createElement("div");
-	add_class(this.controls,"wallander_controls");
-	elem.appendChild(this.controls);	
-	this.info=document.createElement("div");
-	add_class(this.info,"wallander_info");
-	elem.appendChild(this.info);
-	this.info_status=document.createElement("div");
-	add_class(this.info_status,"wallander_info_status");
-	this.info.appendChild(this.info_status);
-	this.model_info=document.createElement("div");
-	add_class(this.info,"wallander_info");
-	this.info.appendChild(this.model_info);
+
+	// The player controls
+	this.playpause=document.createElement("object");
+	this.playpause.setAttribute('type','image/svg+xml')
+	this.playpause.setAttribute('height','50')
+	this.playpause.setAttribute('data','/img/play_pause.svg')
+	elem.appendChild(this.playpause);	
+	this.player_controls=new PlayerControls(this.playpause)
 
 	// create the projector
 	this.projector=new Projector(this)

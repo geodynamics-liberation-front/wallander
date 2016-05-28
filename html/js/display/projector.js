@@ -29,37 +29,24 @@ function Projector(display)
 	this.frameTime=0
 	this.direction=1;
 	this.playing=false;
-
+	this.player_controls=display.player_controls
 
 	// Setup the controls
-	this.controls=document.createElement("div");
-	add_class(this.controls,"wallander_projector_controls");
-	display.controls.appendChild(this.controls);
-	// And the buttons
-	this.btn_begining=new_button(function(e){self.begining();},"begining",this.controls);
-	this.btn_rr=new_button(function(e){self.rewind();},"rr",this.controls);
-	this.btn_pause=new_button(function(e){self.pause();},"pause",this.controls);
-	this.btn_pause.style.display='none';
-	this.btn_play=new_button(function(e){self.play();},"play",this.controls);
-	this.btn_ff=new_button(function(e){self.fastforward();},"ff",this.controls);
-	this.btn_end=new_button(function(e){self.end();},"end",this.controls);
+	this.player_controls.addEventListener('play',function(e) { self.play() })
+	this.player_controls.addEventListener('pause',function(e) { self.pause() })
+	this.player_controls.addEventListener('change',function(e) { self.goto(e.target.frame) })
+	this.player_controls.addEventListener('input',function(e) { self.updateStatus(e.target.frame) })
 }
 
 Projector.prototype.pause = function()
 {
 	this.playing=false;
-	this.btn_play.style.display='';
-	this.btn_pause.style.display='none';
-	remove_class(this.controls,"wallander_playing")
 	this.frameTime=-1
 }
 
 Projector.prototype.play = function()
 {
 	this.playing=true;
-	this.btn_play.style.display='none';
-	this.btn_pause.style.display='';
-	add_class(this.controls,"wallander_playing")
 	this.next();
 }
 
@@ -125,9 +112,9 @@ Projector.prototype.next = function()
 	this.updateStatus()
 }
 
-Projector.prototype.updateStatus = function()
+Projector.prototype.updateStatus = function(f)
 {
-	var frame=this.movie.frame
+	var frame=(f==undefined)?this.movie.frame:f
 	// update the time
 	var fmt="%s"
 	var t=0
@@ -147,6 +134,10 @@ Projector.prototype.updateStatus = function()
 
 	// Update the frame number
 	this.display.status_mgr.set_status('frame',frame)
+	if(f==undefined)
+	{
+		this.player_controls.frame=frame
+	}
 }
 
 Projector.prototype.loaded = function(e)

@@ -80,56 +80,19 @@ body {
 	padding-bottom:300px;
 }
 
-#status input {
-	margin-left: 2px;
-	margin-right: 2px;
-}
-#status select {
-	margin-left: 2px;
-	margin-right: 2px;
-}
-
-.color_picker .swatch {
-	border: 1px solid #a9a9a9
-}
-
-
 /* templates */
 .templates { display: none; }
 
-/* Depcition display */
-.data_field_value {
-	display: inline-block;
-	width: 6em;
-	text-align: right;
-}
 
-/*
-table {
-	border-collapse: collapse;
-}
-*/
-.data_field_details td{
-	vertical-align: top;
-}
-
-.data_field_options .tooltip {
-display: inline-block;
-width:20px;
-height:20px;
-margin-left: -20px
-}
 </style>
 </head>
 <body>
 <div id="display"></div>
-<div id="status">
-</div>
 
-<div id="depictions" class="depiction_display"></div>
-		<div id="data_field_display"></div>
-		<div id="depiction_object_display"></div>
-</div>
+<div id="status"></div>
+
+<div id="data_field_display"></div>
+<div id="depiction_object_display"></div>
 
 <!-- TODO: switch to HTML5 template element? -->
 <div class="templates depiction_display">
@@ -143,14 +106,14 @@ margin-left: -20px
 <table>
 <tbody class="data_field_options">
 <tr><td colspan="3"> 
-<object height="20" class="data_field_control_up" type="image/svg+xml" data="img/up.svg"></object><span title="move up" class="tooltip"></span>
-<object height="20" class="data_field_control_down" type="image/svg+xml" data="img/down.svg"></object><span title="move down" class="tooltip"></span>
-<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object><span title="delete" class="tooltip"></span>
-<object height="20" class="data_field_control_frame" type="image/svg+xml" data="img/raster.svg"></object><span title="show field image" class="tooltip"></span>
-<object height="20" class="data_field_control_contour" type="image/svg+xml" data="img/contour.svg"></object><span title="show field contours" class="tooltip"></span>
-<object height="20" class="data_field_control_reference" type="image/svg+xml" data="img/star.svg"></object><span title="use as reference field" class="tooltip"></span>
-<object height="20" class="data_field_control_link_frames" type="image/svg+xml" data="img/film.svg"></object><span title="sync to reference field using frames" class="tooltip"></span>
-<object height="20" class="data_field_control_link_time" type="image/svg+xml" data="img/clock.svg"></object><span title="sync to reference field using time" class="tooltip"></span>
+<object height="20" class="data_field_control_up" type="image/svg+xml" data="img/up.svg"></object>
+<object height="20" class="data_field_control_down" type="image/svg+xml" data="img/down.svg"></object>
+<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object>
+<object height="20" class="data_field_control_frame" type="image/svg+xml" data="img/raster.svg"></object>
+<object height="20" class="data_field_control_contour" type="image/svg+xml" data="img/contour.svg"></object>
+<object height="20" class="data_field_control_reference" type="image/svg+xml" data="img/star.svg"></object>
+<object height="20" class="data_field_control_link_frames" type="image/svg+xml" data="img/film.svg"></object>
+<object height="20" class="data_field_control_link_time" type="image/svg+xml" data="img/clock.svg"></object>
 </td></tr>
 <tr><td>unit/format</td><td><select class="data_field_unit"></select></td><td><input type="text" class="data_field_format"/></td></tr>
 </tbody>
@@ -181,7 +144,7 @@ margin-left: -20px
 	</td>
 	<td>
 		<input class="data_field_contour_color"/>
-		<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object><span title="delete" class="tooltip"></span>
+		<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object>
 	</td>
 </tr>
 </table>

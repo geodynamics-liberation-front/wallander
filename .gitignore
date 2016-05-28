@@ -7,6 +7,9 @@ __pycache__/
 html/img
 html/js/wallander_display.js
 html/js/widgets.js
+html/css/display.css
+html/css/tools.css 
+html/css/widgets.css
 
 data/*
 log/*

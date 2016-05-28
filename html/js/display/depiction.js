@@ -69,7 +69,7 @@ Line.prototype.clone = function()
 
 function Measure(x0,y0,x1,y1)
 {	
-	Line.call(this,x0,y0,x1,ys)
+	Line.call(this,x0,y0,x1,y1)
 	this.size=18;
 	this.text=""
 }
@@ -101,7 +101,7 @@ Measure.prototype.draw = function(display)
 {
 
 	// Draw the line
-	Object.getPrototypeOf(Measure.prototype).draw.call(this,x,y);
+	Object.getPrototypeOf(Measure.prototype).draw.call(this,display);
 
 	display.paper.translate(-display.x,-display.y)
 	display.paper.scale(1.0/display.zoom_level,1.0/display.zoom_level);
@@ -155,6 +155,7 @@ Marker.prototype.toString = function()
 
 Marker.prototype.setXY = function(x,y)
 {
+	// Add .5 to put it in the center of a pixel
 	this.x=Math.floor(x)+.5;
 	this.y=Math.floor(y)+.5;
 }
@@ -344,6 +345,7 @@ Movie.prototype.addDataField = function(data_field)
 	this.data_fields[path]=data_field
 	this.z_order.push(path)
 	this.last=Math.max(this.last,data_field.frame_count-1)
+	this.projector.player_controls.total_frames=this.last
 	this.show()
 }
 
@@ -377,7 +379,7 @@ Movie.prototype.loaded = function(e)
 	{
 		this.expected_frames=0
 		this.loaded_frames=0
-		this.dispatchEvent('load',e);
+		this.broadcastEvent('load',e);
 	}
 }
 
@@ -390,7 +392,7 @@ Movie.prototype.addEventListener = function(type,listener)
 	this.listeners[type].push(listener);
 }
 
-Movie.prototype.dispatchEvent = function(event_name,e)
+Movie.prototype.broadcastEvent = function(event_name,e)
 {
 	if(event_name in this.listeners)
 	{
@@ -436,7 +438,7 @@ Movie.prototype.next = function(n)
 	this.show();
 	if( (n<0 && this.frame==this.first) || (n>0 && this.frame==this.last) )
 	{
-		this.dispatchEvent('stop');
+		this.broadcastEvent('stop');
 	}
 }
 

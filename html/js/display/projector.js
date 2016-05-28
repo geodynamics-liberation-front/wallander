@@ -1,16 +1,6 @@
 /*
  * projector.js
  */
-
-function new_button(onclick,name,controls)
-{
-	var btn=new Image();
-	btn.src=get_img_url(name+".svg");
-	btn.addEventListener('click',onclick);
-	controls.appendChild(btn)
-	return btn;
-}
-
 function Projector(display)
 {
 	this.display=display;

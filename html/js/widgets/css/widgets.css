@@ -65,3 +65,30 @@
 .dropdown.open::before {
 	content: "\25BE\00A0"; /* Triangle pointing down */
 }
+
+.player_controls {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+}
+
+.player_controls > object {
+	height: 30px;
+}
+
+.player_controls > .progress_bar {
+    display: inline-block;
+    width: 300px;
+    height: 20px;
+    border: 1px solid #787878;
+	padding: 2px;
+	box-sizing: content-box;
+
+}
+
+.player_controls .progress {
+	height: 100%;
+	background-color: #555555;
+}

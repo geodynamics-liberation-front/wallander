@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="/js/widgets.js"></script>
+	<script>
+var mona_btn
+var star_btn
+
+function init()
+{
+	mona_btn=new SVGToggleButton(document.getElementById('mona'))
+	mona_btn.addEventListener('change',function(e) { console.log('Mona set to '+e.value) })
+	star_btn=new SVGToggleButton(document.getElementById('star'))
+	star_btn.addEventListener('change',function(e) { console.log('Star set to '+e.value) })
+}
+	</script>
+<style>
+</style>
+</head>
+<body>
+	<object id="mona" title="Mona Lisa" type="image/svg+xml" data="raster.svg" height="20"></object>
+	<object id="star" title="Happy Star" type="image/svg+xml" data="star.svg" height="20"></object>
+<script>
+init();
+</script>
+</body>
+</html>

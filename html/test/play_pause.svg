@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg id="page" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <style id="style4250" type="text/css">
+g,path {
+	transition: opacity 0.5s;
+}
+#page.play .play {
+	opacity:0.0
+}
+#page.play .pause {
+	opacity:1.0
+}
+#page.pause .play {
+	opacity:1.0
+}
+#page.pause .pause {
+	opacity:0.0
+}</style>
+ <path id="path3893" d="m87.5 50a37.5 37.5 0 0 1 -75 0 37.5 37.5 0 1 1 75 0z" style="stroke:#000;stroke-linecap:round;stroke-width:5;fill:none"/>
+ <path id="path4254" d="m41.591 32.5 16.818 17.5-16.818 17.5" class="play" style="stroke-linejoin:round;stroke:#000;stroke-linecap:round;stroke-width:5;fill:none"/>
+ <path id="path4526-1" d="m38.934 31.831v36.373" style="stroke:#000;stroke-linecap:round;stroke-width:5;fill:none" class="pause"/>
+ <path id="path4526" d="m61.027 31.831v36.373" style="stroke:#000;stroke-linecap:round;stroke-width:5;fill:none" class="pause"/>
+ <script id="script4260" type="text/javascript"><![CDATA[
+	var _value
+	Object.defineProperty(document.defaultView,'value',
+    {enumerable: true,
+     get: function() { return _value;},
+     set: function(value)
+        {   
+            if( value!=_value )
+            {   
+				_value=value
+				document.getElementById('page').classList=[value?'play':'pause']
+            }   
+        }   
+    }) 
+	value=false
+  ]]></script>
+</svg>

@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# build locations and objects
+html/img
+html/js/wallander_display.js
+html/js/widgets.js
+
 data/*
 log/*
 html/old

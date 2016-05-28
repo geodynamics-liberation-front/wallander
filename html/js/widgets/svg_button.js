@@ -1,3 +1,6 @@
+/*
+The SVG document should expose a 'value' variable.  This code witll set value to true/false
+*/
 function SVGToggleButton(o,initialValue)
 {
 	EventBroadcaster.call(this)

@@ -12,6 +12,15 @@ EventBroadcaster.prototype.addEventListener = function(type,listener)
     this.listeners[type].push(listener);
 }
 
+EventBroadcaster.prototype.removeListener = function(type,listener)
+{
+	var ndx=this.listeners[type].indexOf(listener)
+	if( ndx>-1 )
+	{
+		this.listeners[type].splice(ndx,1)
+	}
+}
+
 EventBroadcaster.prototype.broadcastEvent = 
 EventBroadcaster.prototype.dispatchEvent = function(event_type,e)
 {
@@ -31,19 +40,25 @@ function WaitFor(objects,events,callback,args)
 	this.callback=callback
 	this.args=args
 	this.objs=objects	
-	var self=this
 	for( var i=0; i<this.objs.length; i++ )
 	{
-		var o=this.objs[i]
-		o.addEventListener(events[i],function() { self.ready(o) })
+		createListener(this.objs[i],events[i])
 	}
 }
 
-// TODO: remove listeners
-WaitFor.prototype.ready = function(o)
+WaitFor.prototype.createListener = function(o,e)
+{
+	var self=this
+	var listener={type:e}
+	listener.f=function() { self.ready(o,listener) }
+	o.addEventListener(e,listener.f) 
+}
+
+WaitFor.prototype.ready = function(o,listener)
 {
 	this.response_count++
 	console.log('loaded ['+this.response_count+'/'+this.objs.length+'] :'+o)
+	o.removeListener(listener.type,listener.f)
 	if(this.response_count==this.objs.length)
 	{
 		this.callback(this,this.args)
@@ -64,23 +79,29 @@ OnLoadGroup.prototype.load = function()
 	for( var i=0; i<this.objs.length; i++ )
 	{
 		var o=this.objs[i]
-		o.addEventListener('load',function() { self.loaded(o) })
+		this.createListener(o,load')	
 		o.load()
 	}
 }
 
-// TODO: remove listeners
-OnLoadGroup.prototype.loaded = function(o)
+OnLoadGroup.prototype.createListener = function(o,e)
+{
+	var self=this
+	var listener={type:e}
+	listener.f=function() { self.loaded(o,listener) }
+	o.addEventListener(e,listener.f) 
+}
+
+OnLoadGroup.prototype.loaded = function(o.listener)
 {
 	this.response_count++
 	console.log('loaded ['+this.response_count+'/'+this.objs.length+'] :'+o)
+	o.removeListener(listener.type,listener.f)
 	if(this.response_count==this.objs.length)
 	{
 		this.callback(this,this.args)
 	}
 }
-
-
 
 var regex={
 	letters_numbers: '[a-zA-Z0-9\-]*',

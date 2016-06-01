@@ -1,27 +1,29 @@
 /* Fonts */
 @import url("base.css");
 
-#dialog {
+.fullscreen {
 position: fixed;
 left: 0px;
 top: 0px;
 width: 100%;
 height: 100%;
 background-color: rgba(0,0,0,.7);
+align-items: center;
+justify-content: center;
 display: none;
-z-index: 10000;
+z-index: 10000; /* the top most */ 
 }
 
-#dialog iframe {
+.fullscreen .dialog {
+	width: 80%;
     margin: 0 auto;
+	top: 50%;
+	transform: translateY(-50%);
     display: block;
     border: 1px solid black;
 	position: relative;
-	top: 50%;
 	max-width: 700px;
-	width: 80%;
 	height: 80%;
-	transform: translateY(-50%);
 }
 
 

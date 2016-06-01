@@ -9,6 +9,7 @@ function Projector(display)
 
 	var self=this;
 	this.movie=new Movie()
+	this.movie.data_field_mgr=display.data_field_mgr
 	this.movie.projector=this
 	this.movie.addEventListener('load',function(e) { self.loaded(e); });
 	this.movie.addEventListener('stop',function(e) { self.stopped(e); });
@@ -29,6 +30,11 @@ function Projector(display)
 	this.player_controls.addEventListener('input',function(e) { self.updateStatus(e.target.frame) })
 }
 Projector.prototype = Object.create(EventBroadcaster.prototype)
+
+Projector.prototype.toString = function()
+{
+	return "Projector"
+}
 
 Projector.prototype.pause = function()
 {

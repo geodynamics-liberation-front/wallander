@@ -17,6 +17,8 @@ function StatusManager(elem,display)
 }
 StatusManager.prototype = Object.create(Manager.prototype)
 
+StatusManager.prototype.toString = function() { return "StatusManager" }
+
 StatusManager.prototype.add_status = function(name,display_name,short_name)
 {
 	var status=new Status(this.status_bar,this.status_editor_table,name,display_name,short_name)

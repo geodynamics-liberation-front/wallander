@@ -15,7 +15,7 @@ function dialog_init()
 function show_dialog()
 {
 	var dialog=document.getElementById('dialog');
-	dialog.style.display='block';
+	dialog.style.display='flex';
 	display.toolbox.close()
 }
 

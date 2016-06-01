@@ -105,8 +105,7 @@ function LinearInterpolate1d(a)
 LinearInterpolate1d.prototype.update = function(a)
 {
 	this.a=a
-	this.indicies=[]
-	for( var i in a ) { this.indicies.push(i) }
+	this.indicies=Object.keys(a)
 }
 
 LinearInterpolate1d.prototype.value = function(n)

@@ -10,6 +10,8 @@ function DepictionManager(elem,display)
 }
 DepictionManager.prototype = Object.create(Manager.prototype)
 
+DepictionManager.prototype.toString = function() { return "DepictionManager" }
+
 DepictionManager.prototype.addDepiction = function (obj,n)
 {
 	n=n==null?this.depictions.length:n

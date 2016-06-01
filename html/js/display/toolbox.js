@@ -34,7 +34,7 @@ function ToolBox(display)
 
 	add_stylesheet("tools.css");	
 
-	document.body.appendChild(this.toolbox_elem);
+	display.elem.parentElement.appendChild(this.toolbox_elem);
 }
 
 ToolBox.prototype.close=function()

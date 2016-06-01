@@ -293,9 +293,7 @@ Background.prototype.draw = function(display)
 	var pattern = display.paper.createPattern(this.img,"repeat");
 	display.paper.translate(-display.x,-display.y)
 	display.paper.scale(1.0/display.zoom_level,1.0/display.zoom_level);
-	//display.paper.rect(0,0,display.canvas.width,display.canvas.height);
 	display.paper.fillStyle=pattern;
-	//display.paper.fill();
 	display.paper.fillRect(0,0,display.canvas.width,display.canvas.height);
 	display.paper.scale(display.zoom_level,display.zoom_level);
 	display.paper.translate(display.x,display.y)
@@ -307,8 +305,6 @@ function Movie()
 	this.display=true;
 	this.selected=false;
 	this.name='movie';
-	this.data_fields={}
-	this.z_order=[]
 	this.expected_frames=0
 	this.loaded_frames=0
 	this.x=0;
@@ -318,6 +314,9 @@ function Movie()
 	this.first=0;
 	this.listeners={};
 }
+Object.defineProperty(Movie.prototype,'z_order', {get: function() { return this.data_field_mgr.data_field_paths }})
+
+Object.defineProperty(Movie.prototype,'data_fields', {get: function() { return this.data_field_mgr.data_fields }})
 
 Movie.prototype.getEditor = function() { return 'movie_editor'; }
 
@@ -340,10 +339,6 @@ Movie.prototype.getBounds = function()
 
 Movie.prototype.addDataField = function(data_field)
 {
-	var path=data_field.path
-	if( path in this.data_fields ) { return; }
-	this.data_fields[path]=data_field
-	this.z_order.push(path)
 	this.last=Math.max(this.last,data_field.frame_count-1)
 	this.projector.player_controls.total_frames=this.last
 	this.show()
@@ -377,7 +372,6 @@ Movie.prototype.loaded = function(e)
 	if( this.expected_frames>0 )
 	{
 		this.loaded_frames++
-		console.log('frame ['+this.loaded_frames+'/'+this.expected_frames+']')
 		if( this.loaded_frames>=this.expected_frames )
 		{
 			this.expected_frames=0

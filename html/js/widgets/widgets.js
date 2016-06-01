@@ -42,7 +42,7 @@ function WaitFor(objects,events,callback,args)
 	this.objs=objects	
 	for( var i=0; i<this.objs.length; i++ )
 	{
-		createListener(this.objs[i],events[i])
+		this.createListener(this.objs[i],events[i])
 	}
 }
 
@@ -57,7 +57,7 @@ WaitFor.prototype.createListener = function(o,e)
 WaitFor.prototype.ready = function(o,listener)
 {
 	this.response_count++
-	console.log('loaded ['+this.response_count+'/'+this.objs.length+'] :'+o)
+	console.log('ready('+listener.type+') ['+this.response_count+'/'+this.objs.length+'] :'+o)
 	o.removeListener(listener.type,listener.f)
 	if(this.response_count==this.objs.length)
 	{
@@ -79,7 +79,7 @@ OnLoadGroup.prototype.load = function()
 	for( var i=0; i<this.objs.length; i++ )
 	{
 		var o=this.objs[i]
-		this.createListener(o,load')	
+		this.createListener(o,'load')	
 		o.load()
 	}
 }
@@ -92,7 +92,7 @@ OnLoadGroup.prototype.createListener = function(o,e)
 	o.addEventListener(e,listener.f) 
 }
 
-OnLoadGroup.prototype.loaded = function(o.listener)
+OnLoadGroup.prototype.loaded = function(o,listener)
 {
 	this.response_count++
 	console.log('loaded ['+this.response_count+'/'+this.objs.length+'] :'+o)
@@ -112,12 +112,12 @@ var regex={
 function event_xy(e,elem,relative_content)
 {
 	var cr=elem.getBoundingClientRect()
+	var s=getComputedStyle(elem)
 	if ( relative_content )
 	{
-		var s=getComputedStyle(elem)
 		return {
 			x: e.clientX-cr.left-(parseInt(s.borderLeft)+parseInt(s.paddingLeft)),
-			y: e.clientY-cr.top -(parseInt(s.borderTop )-parseInt(s.paddingTop )),
+			y: e.clientY-cr.top -(parseInt(s.borderTop )+parseInt(s.paddingTop )),
 			width: cr.width-(parseInt(s.borderLeft)+parseInt(s.borderRight)+parseInt(s.paddingLeft)+parseInt(s.paddingRight)),
 			height: cr.height-(parseInt(s.borderTop)+parseInt(s.borderBottom)+parseInt(s.paddingLeft)+parseInt(s.paddingBottom)),
 			client_rect: cr

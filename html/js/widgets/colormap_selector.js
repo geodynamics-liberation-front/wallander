@@ -1,14 +1,16 @@
 var default_colormap_loader
 
-function DefaultColormapLoader(url)
+function ColormapLoader(url)
 {
 	EventBroadcaster.call(this)
 	this.url=url
 	this.colormaps
 }
-DefaultColormapLoader.prototype=Object.create(EventBroadcaster.prototype)
+ColormapLoader.prototype=Object.create(EventBroadcaster.prototype)
 
-DefaultColormapLoader.prototype.load = function()
+ColormapLoader.prototype.toString = function() { return "ColormapLoader" }
+
+ColormapLoader.prototype.load = function()
 {
 	var self=this
 	jsonCall(this.url,function(cm) { self.colormaps=cm; self.broadcastEvent('load',{target:self});})

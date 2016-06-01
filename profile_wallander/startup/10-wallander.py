@@ -20,7 +20,7 @@ def call(url):
     path=[p for p in url.split('/') if p!='']
     data_provider=path.pop(0) if len(path)>0 else ''
     dp=configuration['data_providers'].get(data_provider)
-    return dp.call({"REQUEST_URI":url,"PATH_INFO":""},start_response,path)
+    return dp.call(path)
 
 def get(url):
     response=application({"REQUEST_URI":url,"PATH_INFO":""},start_response)

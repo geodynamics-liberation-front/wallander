@@ -12,31 +12,34 @@
 <script>
 "use strict";
 var display=null;
+var spinner;
+var spinner_btn=null;
 
 function init()
 {
 	console.log("init");
+	// Start Spinning
+	spinner=document.getElementById("spinner")
+	spinner.style.display="flex"
+	var spinner_object=spinner.children[0]
+	spinner_btn=new SVGToggleButton(spinner_object,true)
+
 	// Create the display object
 	display=new Display(
 		document.getElementById("display"),
 		document.getElementById("depiction_object_display"),
 		document.getElementById("data_field_display"),
 		document.getElementById('status'))
-	default_colormap_loader=new DefaultColormapLoader(config['frame_prefix']+'/_colormaps',resources_loaded)
-	var olg=new OnLoadGroup([display,default_colormap_loader],resources_loaded)	
+	default_colormap_loader=new ColormapLoader(config['frame_prefix']+'/_colormaps')
+	var olg=new OnLoadGroup([display,default_colormap_loader],deserialize)	
 	olg.load()
 }
 
-function resources_loaded()
+// Restore our previous state
+function deserialize()
 {
 	display.addDepiction(new Background(),0);
 	display.resize();
-	deseralized()
-}
-
-// Restore our previous state
-function deseralized()
-{
 	var serialid=document.location.hash.substring(1)
 	if(serialid)
 	{
@@ -53,18 +56,21 @@ function deseralized()
 function showPage()
 {
 	console.log('show page')
-	document.body.style.opacity="1"
+	document.getElementById("spinner").style.display="none"
+	document.getElementById('page').style.opacity="1"
+	spinner_btn.value=false
 }
 
 
 </script>
 <style>
 
-body {
+#page{
 	opacity: 0;
-	transition-delay: .5s;
 	transition-property: opacity;
-	transition-duration: .1s;
+	transition-duration: .5s;
+}
+body {
 	overflow-y: scroll;
 	padding-bottom:300px;
 }
@@ -76,72 +82,21 @@ body {
 </style>
 </head>
 <body>
+<div id="page">
 <div id="display"></div>
 
 <div id="status"></div>
 
 <div id="data_field_display"></div>
 <div id="depiction_object_display"></div>
+</div><!-- page -->
 
-<!-- TODO: switch to HTML5 template element? -->
-<div class="templates depiction_display">
+<div id="dialog" class="fullscreen">
+	<iframe id="open_dataset" class="dialog" src="open_dataset"></iframe>
+</div>
 
-	<div id="data_field_template">
-		<div class="data_field_status">
-<span class="data_field_name label">name</span>
-<span class="data_field_value">value</span>
-		</div>
-		<div class="data_field_details">
-<table>
-<tbody class="data_field_options">
-<tr><td colspan="3"> 
-<object height="20" class="data_field_control_up" type="image/svg+xml" data="img/up.svg"></object>
-<object height="20" class="data_field_control_down" type="image/svg+xml" data="img/down.svg"></object>
-<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object>
-<object height="20" class="data_field_control_frame" type="image/svg+xml" data="img/raster.svg"></object>
-<object height="20" class="data_field_control_contour" type="image/svg+xml" data="img/contour.svg"></object>
-<object height="20" class="data_field_control_reference" type="image/svg+xml" data="img/star.svg"></object>
-<object height="20" class="data_field_control_link_frames" type="image/svg+xml" data="img/film.svg"></object>
-<object height="20" class="data_field_control_link_time" type="image/svg+xml" data="img/clock.svg"></object>
-</td></tr>
-<tr><td>unit/format</td><td><select class="data_field_unit"></select></td><td><input type="text" class="data_field_format"/></td></tr>
-</tbody>
-<tbody class="data_field_frame_options">
-<tr><td colspan="3" style="text-align: center">image options</td></tr>
-<tr><td>opacity</td><td colspan="2"><input type='range' class="data_field_frame_opacity" min="0.0" max="1.0" step="0.01"/></td></tr>
-<tr><td>colormap:</td><td colspan="2"><select class="data_field_colormap"></select></td></tr>
-<tr><td>min/max</td><td><input type="text" class="data_field_min"/></td><td><input type="text" class="data_field_max"/></td></tr>
-<tr><td>under/over color</td><td><input class="data_field_under"/></td><td><input class="data_field_over"/></td>
-<tr><td>log scale:</td><td colspan="2"> <input type="checkbox" class="data_field_log"/> </td><tr>
-</tbody>
-<tbody class="data_field_contour_options">
-<tr><td colspan="3" style="text-align: center">contour options</td></tr>
-<tr><td>opacity</td><td colspan="2"><input type='range' class="data_field_contour_opacity" min="0.0" max="1.0" step="0.01"/></td></tr>
-<tr><td colspan="3"><input type="button" class="data_field_contour_add" value="add contour"/></td></tr>
-</tbody>
-</table>
-		</div>
-	</div> <!-- data_field_template -->
-<!-- Contour field template -->
-<!-- TODO: Add dash? -->
-<table>
-<tr id="data_field_contour_field_template">
-	<td>&nbsp;</td>
-	<td>
-		<input class="data_field_contour_value" placeholder="value" /> 
-		<input class="data_field_contour_width" placeholder="width" type="number" min="0.1" max="10.0" step="0.1"/>
-	</td>
-	<td>
-		<input class="data_field_contour_color"/>
-		<object height="20" class="data_field_control_delete" type="image/svg+xml" data="img/trashcan.svg"></object>
-	</td>
-</tr>
-</table>
-
-</div> <!-- templates -->
-
-<div id="dialog">
-	<iframe src="open_dataset"></iframe>
+<div id="spinner" class="fullscreen">
+		<object height="50" class="spinner" type="image/svg+xml" data="img/spinner.svg"></object>
 </div>
 
 <script>

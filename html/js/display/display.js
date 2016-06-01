@@ -17,7 +17,9 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.y=0;
 	this.zoom_level=1.0;
 	this.smooth=false;
+	this.elem=elem
 
+	
 	// Add a stylesheet
 	add_stylesheet("display.css");
 
@@ -101,7 +103,7 @@ Display.prototype.loaded = function()
 
 Display.prototype.toString = function()
 {
-	return "Display[canvas#"+this.canvas.id+"]";
+	return "Display"
 }
 
 Display.prototype.restoreState = function(name)
@@ -137,13 +139,9 @@ Display.prototype.deserialize = function(state)
 	{
 		state=JSON.parse(serialized_obj)
 	}
-	console.log(state)
 	this.status_mgr.deserialize(state.status_mgr)
 	this.data_field_mgr.deserialize(state.data_field_mgr,function() { self.broadcastEvent('deserialized',{target:this}) })
-}
-
-Display.prototype.deserialized = function()
-{
+// TODO depictions
 }
 
 Display.prototype.updateXY = function(e)

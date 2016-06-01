@@ -1,12 +1,7 @@
+/* global Manager */
 /*
  * The data field manager
  */
-function AbstractManager()
-{
-	Manager.call(this)
-}
-AbstractManager.prototype = Object.create(Manager.prototype)
-
 function DataFieldManager(elem,display)
 {
 	Manager.call(this)
@@ -19,6 +14,8 @@ function DataFieldManager(elem,display)
 	this.templates
 }
 DataFieldManager.prototype = Object.create(Manager.prototype)
+
+DataFieldManager.prototype.toString = function() { return "DataFieldManager" }
 
 DataFieldManager.prototype.load = function()
 {
@@ -93,9 +90,13 @@ DataFieldManager.prototype.addDataField = function(data_field)
 			throw new Error('Unknown data type: "'+data_field.data_type+'"')
 	}
 
-
 	this.data_field_paths.push(data_field.path)
 	this.data_fields[data_field.path]=df
+
+	for( var i=0; i<this.data_field_paths.length; i++ )
+	{
+		this.data_fields[this.data_field_paths[i]].setOrder(i)
+	}
 
 	if( !this.reference_data_field ) 
 	{ 
@@ -108,10 +109,16 @@ DataFieldManager.prototype.removeDataField = function(data_field)
 {
 	var df=this.data_fields[data_field]
 	delete this.data_fields[data_field]
+
 	this.data_field_paths.splice(this.data_field_paths.indexOf(data_field),1)
 	if( df===this.reference_data_field )
 	{
 		this.setReferenceDataField(this.data_field_paths[-1])
+	}
+
+	for( var i=0; i<this.data_field_paths.length; i++ )
+	{
+		this.data_fields[this.data_field_paths[i]].setOrder(i)
 	}
 }
 
@@ -148,20 +155,26 @@ DataFieldManager.prototype.updateDisplayValue = function(v,df)
 
 DataFieldManager.prototype.setReferenceDataField = function(data_field)
 {
-	// Set the reference data field
-	this.reference_data_field=data_field 
-	if( data_field )
+	if( this.reference_data_field != data_field )
 	{
-		// Set the time units and format
-		var editor=display.status_mgr.statuses['time'].status_editor
-		editor.innerHTML=''
-		editor.appendChild(data_field.time_unit_select)
-		editor.appendChild(data_field.time_format_input)
+		// Set the reference data field
+		if( this.reference_data_field ) this.reference_data_field.isReference=false
+		this.reference_data_field=data_field 
+		if( this.reference_data_field)
+		{
+			this.reference_data_field.isReference=true
+			// Set the time units and format
+			var editor=display.status_mgr.statuses['time'].status_editor
+			editor.innerHTML=''
+			editor.appendChild(data_field.time_unit_select)
+			editor.appendChild(data_field.time_format_input)
 
-		var editor=display.status_mgr.statuses['dimensional_xy'].status_editor
-		editor.innerHTML=''
-		editor.appendChild(data_field.dimension_unit_select)
-		editor.appendChild(data_field.dimension_format_input)
+			var editor=display.status_mgr.statuses['dimensional_xy'].status_editor
+			editor.innerHTML=''
+			editor.appendChild(data_field.dimension_unit_select)
+			editor.appendChild(data_field.dimension_format_input)
+		}
+		this.display.updateXY()
 	}
 }
 
@@ -186,11 +199,16 @@ function DataField(native_data_field,data_field_mgr)
 	this._time_format=this.native.time_format
 	this._dimension_unit=this.native.dimension_unit
 	this._dimension_format=this.native.dimension_format
+	this._isReference=false
+	this._sync='frame'
 	this.visible=true
 
 	this.html_display=data_field_mgr.templates.getElementById('data_field_template').cloneNode(true)
 	this.html_display.id=this.path
+	this.html_display.style.order=data_field_mgr.data_field_paths.length
 	data_field_mgr.html_element.appendChild(this.html_display)
+
+	
 	new Dropdown(this.html_display.getElementsByClassName('data_field_status')[0], this.html_display.getElementsByClassName('data_field_details')[0])
 
 	// The name value in the status bar
@@ -235,6 +253,51 @@ function DataField(native_data_field,data_field_mgr)
 	this.dimension_format_input.className='data_field_dimension_format'
 	this.dimension_format_input.value=this._dimension_format
 	this.dimension_format_input.addEventListener('change',function(e) { self.dimension_format=e.target.value; })
+
+	// Move up/down
+	this.moveup_btn = new SVGButton(this.html_display.getElementsByClassName('data_field_control_up')[0],false)
+	this.movedown_btn=new SVGButton(this.html_display.getElementsByClassName('data_field_control_down')[0],true)
+	this.moveup_btn.addEventListener('click',function(e) { self.moveup() })
+	this.movedown_btn.addEventListener('click',function(e) { self.movedown() })
+
+	// The reference button
+	this.reference_btn=new SVGOnButton(this.html_display.getElementsByClassName('data_field_control_reference')[0])
+	this.reference_btn.addEventListener('change',function(e) { self.isReference=e.value })
+	// The frame/time sync buttons
+	this.sync_btn=new SVGRadioButtons(this.html_display.getElementsByClassName('data_field_control_sync'),this._sync)
+	this.sync_btn.addEventListener('change',function(e) { self.sync=e.value})
+}
+
+DataField.prototype.moveup = function()
+{
+	var ndx=this.data_field_mgr.data_field_paths.indexOf(this.path)
+	if( ndx<this.data_field_mgr.data_field_paths.length-1 )
+	{
+		var other_df=this.data_field_mgr.data_fields[this.data_field_mgr.data_field_paths[ndx+1]]
+		this.setOrder(ndx+1)
+		other_df.setOrder(ndx)
+		this.data_field_mgr.display.redraw()
+	}
+}
+
+DataField.prototype.movedown = function()
+{
+	var ndx=this.data_field_mgr.data_field_paths.indexOf(this.path)
+	if( ndx>0 )
+	{
+		var other_df=this.data_field_mgr.data_fields[this.data_field_mgr.data_field_paths[ndx-1]]
+		this.setOrder(ndx-1)
+		other_df.setOrder(ndx)
+		this.data_field_mgr.display.redraw()
+	}
+}
+
+DataField.prototype.setOrder = function(z)
+{
+	this.html_display.style.order=z
+	this.data_field_mgr.data_field_paths[z]=this.path
+	this.movedown_btn.enabled = (z!=0)
+	this.moveup_btn.enabled = (z!=this.data_field_mgr.data_field_paths.length-1) 
 }
 
 DataField.prototype.serialize = function()
@@ -259,6 +322,34 @@ DataField.prototype.deserialize = function(serialized_data_field)
 	this.dimension_format = serialized_data_field.dimension_format
 }
 
+Object.defineProperty(DataField.prototype,'sync',
+    {enumerable: true,
+     get: function() { return this._sync;},
+     set: function(sync)
+        {
+			if( typeof(sync)!='string' ) throw new Error ('sync must be a string not a ' + typeof(sync) + ' : '+sync)
+			if( sync!=this._sync )
+			{
+				this._sync=sync
+				this.sync_btn.value=this._sync
+			}
+        }
+    })
+
+Object.defineProperty(DataField.prototype,'isReference',
+    {enumerable: true,
+     get: function() { return this._isReference;},
+     set: function(isReference)
+        {
+			if( typeof(isReference)!='boolean' ) throw new Error ('isReference must be a boolean not a ' + typeof(isReference) + ' : '+isReference)
+			if( isReference!=this._isReference )
+			{
+				this._isReference=isReference
+				this.reference_btn.value=this._isReference
+				if( this._isReference ) this.data_field_mgr.setReferenceDataField(this)
+			}
+        }
+    })
 Object.defineProperty(DataField.prototype,'unit',
     {enumerable: true,
      get: function() { return this._unit;},
@@ -444,7 +535,7 @@ function ContourOptions(data_field)
 	this._contours=''
 	this._style=''
 
-	// Dispaly button
+	// Display button
 	this.table=data_field.html_display.getElementsByClassName('data_field_contour_options')[0]
 	this.table.style.display=this._show?'':'none'
 	this.display_btn=new SVGToggleButton(data_field.html_display.getElementsByClassName('data_field_control_contour')[0],this._show)
@@ -467,9 +558,9 @@ Object.defineProperty(ContourOptions.prototype,'show',
      get: function() { return this._show;},
      set: function(show)
         {
+			if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
 			if( show!=this._show )
 			{
-				if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
 				this._show=show
 				this.display_btn.value=show
 				this.table.style.display=show?'':'none'
@@ -510,7 +601,7 @@ Object.defineProperty(ContourOptions.prototype,'contours',
 
 ContourOptions.prototype.addContourFields = function()
 {
-	var row=data_field.data_field_mgr.templates.getElementById('data_field_contour_field_template').cloneNode(true)
+	var row=this.data_field.data_field_mgr.templates.getElementById('data_field_contour_field_template').cloneNode(true)
 	row.id=''
 	this.table.appendChild(row)
 	var contour=new Contour(this,row)
@@ -755,9 +846,9 @@ Object.defineProperty(FrameOptions.prototype,'show',
      get: function() { return this._show;},
      set: function(show)
         {
+			if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
 			if( show!=this._show )
 			{
-				if( typeof(show)!='boolean' ) throw new Error ('show must be a boolean not a ' + typeof(show) + ' : '+show)
 				this._show=show
 				this.display_btn.value=show
 				this.table.style.display=show?'':'none'
@@ -826,9 +917,9 @@ Object.defineProperty(FrameOptions.prototype,'log',
      get: function() { return this._log;},
      set: function(log)
         {
+			if( typeof(log)!='boolean' ) throw new Error ('log must be a boolean not a ' + typeof(log) + ' : '+log)
 			if( log!=this._log )
 			{
-				if( typeof(log)!='boolean' ) throw new Error ('log must be a boolean not a ' + typeof(log) + ' : '+log)
 				this._log=log
 				if( this.log_checkbox.checked!=this._log ) this.log_checkbox.checked=this._log
 				this.updateRenderer()

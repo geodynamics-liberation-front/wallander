@@ -21,6 +21,10 @@ margin: 0 auto;
 	margin-bottom: 3px;
 }
 
+#data_field_display {
+	display: flex;
+    flex-direction: column-reverse;
+}
 #data_field_display>div {
 	margin-bottom: 3px;
 }

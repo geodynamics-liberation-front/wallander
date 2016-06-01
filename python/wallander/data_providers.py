@@ -16,11 +16,23 @@ class BaseDataProvider(object):
     def __init__(self,name,configuration):
         self.name=name
         self.icon=os.path.join(self.__module__,wallander.ICONS,self.__module__+'.svg')
-        self.data_dir=os.path.join(configuration['data_dir'],self.__module__)
-        self.default_dir=os.path.join(configuration['data_dir'],'_default')
-        self.frame_dir=os.path.join(configuration['frame_dir'],self.__module__)
+#        self.data_dir=os.path.join(configuration['data_dir'],self.__module__)
+#        self.default_dir=os.path.join(configuration['data_dir'],'_default')
+#        self.frame_dir=os.path.join(configuration['frame_dir'],self.__module__)
         # Allow all numpy functions by default (may refine this later)
         self.functions={k:v for k,v in numpy.__dict__.items() if inspect.isfunction(v)}
+
+    @property
+    def data_dir(self):
+        return os.path.join(configuration['data_dir'],self.__module__)
+
+    @property
+    def default_dir(self):
+        return os.path.join(configuration['data_dir'],'_default')
+
+    @property
+    def frame_dir(self):
+        return os.path.join(configuration['frame_dir'],self.__module__)
 
     def apply_slice_function(self,frame,slice_function):
         if len(slice_function)>0:

@@ -3,6 +3,8 @@ import os
 import HDF
 from wallander import ICONS
 import wallander.viz as viz
+from matplotlib.pylab import register_cmap
+from matplotlib.colors import LinearSegmentedColormap 
 
 LOG=logging.getLogger(__name__)
 
@@ -52,9 +54,38 @@ class StagYYDataSource(HDF.H5DataSource):
 
         return files
 
+def litho_colormap(min,max,boundary=1600.0,width=20):
+    if boundary<min or boundary>max:
+        bndry=max-50
+        b=(bndry-min)/(max-min)
+    else:
+        b=(boundary-min)/(max-min)
+
+    cdict  = {'red':  ((                  0.0, 0.0 , 0.0),
+                       (    (width-1)*b/width, 0.0 , 0.0),
+                       (                    b, 0.8 , 1.0),
+                       (((width-1)*b+1)/width, 1.0 , 1.0),
+                       (                  1.0, 0.4 , 1.0)),
+
+             'green': ((                  0.0, 0.0 , 0.0),
+                       (    (width-1)*b/width, 0.0 , 0.0),
+                       (                    b, 0.9 , 0.9),
+                       (((width-1)*b+1)/width, 0.0 , 0.0),
+                       (                  1.0, 0.0 , 0.0)),
+
+             'blue':  ((                  0.0, 0.0 , 0.4),
+                       (    (width-1)*b/width, 1.0 , 1.0),
+                       (                    b, 1.0 , 0.8),
+                       (((width-1)*b+1)/width, 0.0 , 0.0),
+                       (                  1.0, 0.0 , 0.0))}
+
+    cm=LinearSegmentedColormap('Lithosphere%d'%boundary, cdict)
+    register_cmap(cmap=cm)
+    return cm
+
 def create_colormaps():
     LOG.debug('Creating lithosphere colormaps')
-    viz.litho_colormap(0,1650,1550,10)
+    litho_colormap(0,1650,1550,10)
     viz.alpha_colormap('AlphaGreen',0.0,1.0,0.0)
 
 STAGYY_DISPLAY_NAMES={

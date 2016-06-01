@@ -23,7 +23,7 @@ class H5DataProvider(data_providers.BaseDataProvider):
     def is_source(self,fname):
         return os.path.isdir(fname) and any([ f.endswith('.h5') for f in os.listdir(fname)])
 
-    def call(self,environ,start_response,path):
+    def call(self,path):
         fname=self.data_dir
         slice_function=[]
         fname=os.path.join(self.data_dir,*path)
@@ -155,6 +155,9 @@ class H5DataField(object):
                       format_attribute_name='format',data_type_attribute_name='data_type',
                       x0_attribute_name='x0',dx_attribute_name='dx',y0_attribute_name='y0',dy_attribute_name='dy',
                       renderer_attribute_name='renderer',
+                      contour_levels_attribute_name='contour_levels',
+                      contour_widths_attribute_name='contour_widths',
+                      contour_colors_attribute_name='contour_colors',
                       time_dataset=None,
                       unit=None, dimension_unit=None, time_unit=None,
                       dimension_format=None,time_format=None,
@@ -162,6 +165,7 @@ class H5DataField(object):
                       data_type=None,
                       x0=None, dx=None, y0=None, dy=None,
                       renderer=None,
+                      contour_levels=None,contour_widths=None,contour_colors=None
                       ):
 
         self.filename=filename
@@ -190,8 +194,9 @@ class H5DataField(object):
         if dy or dy_attribute_name in attributes:
             self.dy=dy or attributes[dy_attribute_name]
         self.renderer=renderer or attributes[renderer_attribute_name]
-
-
+        self.contour_levels=contour_levels or attributes[contour_levels_attribute_name]
+        self.contour_widths=contour_widths or attributes[contour_widths_attribute_name]
+        self.contour_colors=contour_colors or attributes[contour_colors_attribute_name]
 
     def __str__(self):
         return "H5DataField(%s)"%self.name
@@ -245,6 +250,9 @@ class H5DataField(object):
             "frames": shape[0],
             "format": self.format,
             "renderer": self.renderer,
+            "contour_levels": self.contour_levels,
+            "contour_widths": self.contour_widths,
+            "contour_colors": self.contour_colors,
             "data_type": self.data_type,
             "dimensions": self.dimensions,
             "dimension_unit": self.dimension_unit,

@@ -52,7 +52,7 @@ class BaseDataProvider(object):
             except AttributeError:
                 return response.respond_not_found(start_response)
         else:
-            result=self.call(environ,start_response,path[:])
+            result=self.call(path[:])
             if hasattr(result,'read'): 
                 return response.respond_file(result,environ,start_response)
             elif result==None:

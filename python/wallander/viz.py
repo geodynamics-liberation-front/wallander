@@ -24,10 +24,14 @@ regex={
 
 # colormap_min_max_under_over_bar
 CM_RE=re.compile('(%(letters_numbers)s)_?(%(float)s)?_?(%(float)s)?_?(%(hex)s)?_?(%(hex)s)?_?(%(hex)s)?'%regex)
-# field.{colormap|contours}.frame.extension
+# field.renderer.frame.extension
 FRAME_RE=re.compile('([a-zA-Z0-9]+)\.(.*)\.(\d+)\.([a-z]+)')
+# field.renderer
+RENDER_ALL_RE=re.compile('([a-zA-Z0-9]+)(?:\.(.*))?\.([a-z]+)')
 
 RENDERERS={}
+RENDERER_THREADS={}
+CONTOUR_RENDERER_THREADS={}
 
 COLORBAR_ARRAY=np.tile(np.linspace(0,255,256),(10,1))
 COLORBAR_ARRAY_UNDER=np.tile(np.concatenate((-1*np.ones(10),np.linspace(0,255,246))),(10,1))
@@ -38,17 +42,15 @@ class FrameDataProvider(data_providers.BaseDataProvider):
     def __init__(self):
         pass
 
-    def call(self,environ,start_response,path):
+    def call(self,path):
         LOG.debug('Path: %s',path)
-        image_file=os.path.join(configuration['frame_dir'],*path)
-        LOG.debug("Image file: %s",image_file)
         data_provider=path.pop(0)
-        image=path.pop()
         LOG.debug("Data provider name: '%s'",data_provider)
+        image=path.pop()
         LOG.debug("Frame: '%s'",image)
         m=FRAME_RE.match(image)
         if m:
-            image_dir=os.path.dirname(image_file)
+            image_dir=os.path.join(configuration['frame_dir'],data_provider,*path)
             if not os.path.exists(image_dir):
                 os.makedirs(image_dir)
 
@@ -59,16 +61,21 @@ class FrameDataProvider(data_providers.BaseDataProvider):
             path.append(str(frame_number))
             dp=configuration['data_providers'].get(data_provider)
             LOG.debug("Data provider: %s",str(dp))
-            frame=dp.call(environ,start_response,path)
+            frame=dp.call(path)
             renderer=get_renderer(renderer_string)
+            image_file=os.path.join(self.image_dir,image)
             renderer.write(frame,image_file)
             return open(image_file,'rb')
         else:
             LOG.warning('%s does not match regular expression',image)
             return None
 
-    def _render_all(self,environ,start_Response,path):
-        pass
+    def _render_all(self,environ,start_response,path):
+        renderer_thread = get_renderer_thread('/'.join(path))
+        if not renderer_thread.isAlive():
+            renderer_thread.start()
+        return renderer_thread
+
     def _colormaps(self,environ,start_response,path):
         return response.respond_ok([c for c in colormaps() if not c.endswith('_r')],start_response)
     def _colorbar(self,environ,start_response,path):
@@ -86,45 +93,68 @@ class FrameDataProvider(data_providers.BaseDataProvider):
         renderer.write(array,image_file)
         return response.respond_file(image_file,environ,start_response)
 
-class ContourDataProvider(data_providers.BaseDataProvider):
-    def __init__(self):
-        pass
+def get_renderer_thread(name,callback=None):
+    r=RENDERER_THREADS.get(name)
+    if not r:
+        r=RendererThread(name,callback)
+        RENDERER_THREADS[name]=r
+    return r
 
-    def call(self,environ,start_response,path):
-        LOG.debug('Path: %s',path)
-        image_file=os.path.join(configuration['frame_dir'],*path)
-        LOG.debug("Image file: %s",image_file)
-        data_provider=path.pop(0)
-        image=path.pop()
+class RendererThread(Thread):
+    def __init__(self,path,callback=None):
+        super(RendererThread, self).__init__()
+        self.path=path
+        data_provider=self.path.pop(0)
         LOG.debug("Data provider name: '%s'",data_provider)
-        LOG.debug("Frame: '%s'",image)
-        m=FRAME_RE.match(image)
-        if m:
-            image_dir=os.path.dirname(image_file)
-            if not os.path.exists(image_dir):
-                os.makedirs(image_dir)
+        image=path.pop()
+        LOG.debug("Frames: '%s'",image)
+        m=RENDER_ALL_RE.match(image)
+        if not m:
+            raise ValueError('Could not parse field and renderer from "%s"'%image)
+        self.field,self.renderer_string,self.extension=m.groups()
+        LOG.debug("Field: %s, Renderer: %s",self.field,self.renderer_string)
 
-            field,contour_string,frame_number,extension=m.groups()
-            frame_number=int(frame_number)
-            contours=contour_string.split('_')
-            LOG.debug("Field: %s, Frame Number: %d, Contour: %s, Extension %s",field,frame_number,contour_string,extension)
-            path.append(field)
-            path.append(str(frame_number))
-            dp=configuration['data_providers'].get(data_provider)
-            LOG.debug("Data provider: %s",str(dp))
-            frame=dp.call(environ,start_response,path)
-            contour.write_contour(frame,contours,image_file)
-            return open(image_file,'rb')
-        else:
-            LOG.warning('%s does not match regular expression',image)
-            return None
+        self.image_dir=os.path.join(configuration['frame_dir'],data_provider,*self.path)
+        LOG.debug("Image Dir: '%s'",self.image_dir)
+        if not os.path.exists(self.image_dir):
+            os.makedirs(self.image_dir)
 
-    def _render_all(self,environ,start_Response,path):
-        pass
+        # Get the data field, for the number of frames and default renderer_string
+        self.path.append(self.field)
+        LOG.debug("Path: %s",str(self.path))
+        self.dp=configuration['data_providers'].get(data_provider)
+        LOG.debug("Data provider: %s",str(self.dp))
+        data_field=self.dp.call(self.path[:])
 
-class ArrowDataProvider(object):
-    def __call__(self,environ,start_response,path):
-        pass
+        self.frames=data_field.shape[0]
+        if self.renderer_string==None :
+            self.renderer_string=data_field.renderer
+            LOG.debug("Using default renderer: %s",self.renderer_string)
+
+        self.renderer=get_renderer(self.renderer_string)
+
+        self.filename=os.path.join(self.image_dir,'%s.%s.%%05d.%s'%(self.field,self.renderer_string,self.extension))
+        
+        # Get the field  
+        self.frame=0
+        LOG.debug("Available frames: %d",self.frames)
+        self.callback=callback
+        # Thread state
+        self.running=False
+    def to_json(self):
+        return {'total_frames':self.frames,'current_frame':self.frame,'renderer':self.renderer,'alive':self.isAlive()}
+       
+    def run(self):
+        self.running=True
+        
+        for self.frame in range(self.frames): 
+            if not self.running: break
+            fname=self.filename%self.frame
+            if not os.path.exists(fname):
+                data_frame=self.dp.call(self.path+[str(self.frame)])
+                self.renderer.write(data_frame,fname)
+            if self.callback!=None:
+                self.callback(self.frame,fname)
 
 def get_renderer(name):
     r=RENDERERS.get(name)
@@ -235,35 +265,113 @@ class Renderer(object):
         a = self._colorbar_array(colors,width).T
         self.write(a,out)
 
-#TODO: move this out of viz to the StagYY data provider
-def litho_colormap(min,max,boundary=1600.0,width=20):
-    if boundary<min or boundary>max:
-        bndry=max-50
-        b=(bndry-min)/(max-min)
-    else:
-        b=(boundary-min)/(max-min)
+class ContourDataProvider(data_providers.BaseDataProvider):
+    def __init__(self):
+        pass
 
-    cdict  = {'red':  ((                  0.0, 0.0 , 0.0),
-                       (    (width-1)*b/width, 0.0 , 0.0),
-                       (                    b, 0.8 , 1.0),
-                       (((width-1)*b+1)/width, 1.0 , 1.0),
-                       (                  1.0, 0.4 , 1.0)),
+    def call(self,path):
+        LOG.debug('Path: %s',path)
+        data_provider=path.pop(0)
+        LOG.debug("Data provider name: '%s'",data_provider)
+        image=path.pop()
+        LOG.debug("Frame: '%s'",image)
+        m=FRAME_RE.match(image)
+        if m:
+            image_dir=os.path.join(configuration['frame_dir'],data_provider,*path)
+            if not os.path.exists(image_dir):
+                os.makedirs(image_dir)
 
-             'green': ((                  0.0, 0.0 , 0.0),
-                       (    (width-1)*b/width, 0.0 , 0.0),
-                       (                    b, 0.9 , 0.9),
-                       (((width-1)*b+1)/width, 0.0 , 0.0),
-                       (                  1.0, 0.0 , 0.0)),
+            field,contour_string,frame_number,extension=m.groups()
+            frame_number=int(frame_number)
+            contours=contour_string.split('_')
+            LOG.debug("Field: %s, Frame Number: %d, Contour: %s, Extension %s",field,frame_number,contour_string,extension)
+            path.append(field)
+            path.append(str(frame_number))
+            dp=configuration['data_providers'].get(data_provider)
+            LOG.debug("Data provider: %s",str(dp))
+            frame=dp.call(path)
+            image_file=os.path.join(self.image_dir,image)
+            contour.write_contour(frame,contours,image_file)
+            return open(image_file,'rb')
+        else:
+            LOG.warning('%s does not match regular expression',image)
+            return None
 
-             'blue':  ((                  0.0, 0.0 , 0.4),
-                       (    (width-1)*b/width, 1.0 , 1.0),
-                       (                    b, 1.0 , 0.8),
-                       (((width-1)*b+1)/width, 0.0 , 0.0),
-                       (                  1.0, 0.0 , 0.0))}
+    def _render_all(self,environ,start_Response,path):
+        contour_renderer_thread = get_contour_renderer_thread('/'.join(path))
+        if not contour_renderer_thread.isAlive():
+            contour_renderer_thread.start()
+        return contour_renderer_thread
 
-    cm=LinearSegmentedColormap('Lithosphere%d'%boundary, cdict)
-    register_cmap(cmap=cm)
-    return cm
+def get_contour_renderer_thread(name,callback=None):
+    r=CONTOUR_RENDERER_THREADS.get(name)
+    if not r:
+        r=ContourRendererThread(name,callback)
+        CONTOUR_RENDERER_THREADS[name]=r
+    return r
+
+class ContourRendererThread(Thread):
+    def __init__(self,path,callback=None):
+        super(ContourRendererThread, self).__init__()
+        self.path=path
+        LOG.debug('Path: %s',path)
+        data_provider=path.pop(0)
+        LOG.debug("Data provider name: '%s'",data_provider)
+        image=path.pop()
+        LOG.debug("Frame: '%s'",image)
+        m=RENDER_ALL_RE.match(image)
+        if not m:
+            raise ValueError('Could not parse field and renderer from "%s"'%image)
+        self.field,self.contour_string,self.extension=m.groups()
+        LOG.debug("Field: %s, Renderer: %s",self.field,self.contour_string)
+
+        self.image_dir=os.path.join(configuration['frame_dir'],data_provider,*self.path)
+        if not os.path.exists(self.image_dir):
+            os.makedirs(self.image_dir)
+
+        # Get the data field, for the number of frames and default contour_string
+        self.path.append(self.field)
+        LOG.debug("Path: %s",str(self.path))
+        self.dp=configuration['data_providers'].get(data_provider)
+        LOG.debug("Data provider: %s",str(self.dp))
+        data_field=self.dp.call(self.path[:])
+
+        self.frames=data_field.shape[0]
+        if self.contour_string==None :
+            self.contour_string='_'.join(data_field.contour_levels)
+            LOG.debug("Using default controu: %s",self.contour_string)
+
+        self.contours=self.contour_string.split('_')
+
+        self.filename=os.path.join(self.image_dir,'%s.%s.%%05d.%s'%(self.field,self.contour_string,self.extension))
+
+        # Get the field  
+        self.frame=0
+        LOG.debug("Available frames: %d",self.frames)
+        self.callback=callback
+        # Thread state
+        self.running=False
+    def to_json(self):
+        return {'total_frames':self.frames,'current_frame':self.frame,'contour_levels':self.contour_string,'alive':self.isAlive()}
+       
+    def run(self):
+        self.running=True
+        
+        if(len(self.contours)==0):
+            LOG.warning("No contours for %s, skipping",'/'.join(self.path))
+            return
+        for self.frame in range(self.frames): 
+            if not self.running: break
+            fname=self.filename%self.frame
+            if not os.path.exists(fname):
+                data_frame=self.dp.call(self.path+[str(self.frame)])
+                contour.write_contour(data_frame,self.contours,fname)
+            if self.callback!=None:
+                self.callback(self.frame,fname)
+
+class ArrowDataProvider(object):
+    def __call__(self,environ,start_response,path):
+        pass
 
 def alpha_colormap(name,red,green,blue,alpha_min=0.0,alpha_max=1.0):
     cdict = {'red':    ((0.0,red,red),

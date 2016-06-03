@@ -20,20 +20,76 @@ function Projector(display)
 	this.actualFPS='-'
 	this.frameTime=0
 	this.direction=1;
-	this.playing=false;
-	this.player_controls=display.player_controls
+	this._playing=false;
+	this.player_controls=display.player_controls;
 
 	// Setup the controls
 	this.player_controls.addEventListener('play',function(e) { self.play() })
 	this.player_controls.addEventListener('pause',function(e) { self.pause() })
 	this.player_controls.addEventListener('change',function(e) { self.goto(e.target.frame) })
 	this.player_controls.addEventListener('input',function(e) { self.updateStatus(e.target.frame) })
+	// Listen for button events
+	window.addEventListener('keydown',function(e) { self.keydown(e) })
 }
 Projector.prototype = Object.create(EventBroadcaster.prototype)
+
+Object.defineProperty(Projector.prototype,'playing', {
+	get: function() { return this._playing },
+	set: function(p) {
+			if( p!=this._playing )
+			{
+				this._playing=p
+				this.player_controls.playing = p
+			}
+		}
+	})
 
 Projector.prototype.toString = function()
 {
 	return "Projector"
+}
+
+Projector.prototype.keydown = function(e)
+{
+	switch(e.keyCode)
+	{
+		case 37: // left
+			if( e.shiftKey )
+			{
+				this.begining()
+			}
+			else
+			{
+				this.next(-1)
+			}
+			e.preventDefault()
+			break
+		case 39: //right
+			if( e.shiftKey )
+			{
+				this.end()
+			}
+			else
+			{
+				this.next(1)
+			}
+			e.preventDefault()
+			break
+		case 32: // spacebar
+			this.playing=!this.playing
+			if( this.playing )
+			{
+				this.next()
+			}
+			else
+			{
+				this.frameTime=-1
+			}
+			e.preventDefault()
+			break
+		default:
+			console.log("keyCode: "+e.keyCode)
+	}
 }
 
 Projector.prototype.pause = function()
@@ -95,9 +151,9 @@ Projector.prototype.redraw = function()
 	this.movie.show()
 }
 
-Projector.prototype.next = function()
+Projector.prototype.next = function(direction)
 {
-	this.movie.next(this.direction);
+	this.movie.next(direction || this.direction);
 	if( this.playing && this.frameTime>0 ) 
 	{
 		this.actualFPS=Math.round(1000/(performance.now()-this.frameTime));

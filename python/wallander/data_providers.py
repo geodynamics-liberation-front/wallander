@@ -10,7 +10,6 @@ import cStringIO
 
 
 LOG=logging.getLogger(__name__)
-add_logger(LOG)
 
 class BaseDataProvider(object):
     def __init__(self,name,configuration):

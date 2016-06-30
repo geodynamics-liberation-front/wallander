@@ -51,44 +51,49 @@ Projector.prototype.toString = function()
 
 Projector.prototype.keydown = function(e)
 {
-	switch(e.keyCode)
+	// Make sure an input isn't selected
+	elem=document.activeElement
+	if( elem==null || (elem.tagName!='INPUT' && elem.tagName!='SELECT') )
 	{
-		case 37: // left
-			if( e.shiftKey )
-			{
-				this.begining()
-			}
-			else
-			{
-				this.next(-1)
-			}
-			e.preventDefault()
-			break
-		case 39: //right
-			if( e.shiftKey )
-			{
-				this.end()
-			}
-			else
-			{
-				this.next(1)
-			}
-			e.preventDefault()
-			break
-		case 32: // spacebar
-			this.playing=!this.playing
-			if( this.playing )
-			{
-				this.next()
-			}
-			else
-			{
-				this.frameTime=-1
-			}
-			e.preventDefault()
-			break
-		default:
-			console.log("keyCode: "+e.keyCode)
+		switch(e.keyCode)
+		{
+			case 37: // left
+				if( e.shiftKey )
+				{
+					this.begining()
+				}
+				else
+				{
+					this.next(-1)
+				}
+				e.preventDefault()
+				break
+			case 39: //right
+				if( e.shiftKey )
+				{
+					this.end()
+				}
+				else
+				{
+					this.next(1)
+				}
+				e.preventDefault()
+				break
+			case 32: // spacebar
+				this.playing=!this.playing
+				if( this.playing )
+				{
+					this.next()
+				}
+				else
+				{
+					this.frameTime=-1
+				}
+				e.preventDefault()
+				break
+			default:
+				console.log("keyCode: "+e.keyCode)
+		}
 	}
 }
 

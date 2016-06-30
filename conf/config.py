@@ -33,6 +33,7 @@ configuration['html_dir']=os.path.join(configuration['dir'],'html')
 configuration['index_files']=['index.html','index.htm']
 configuration['data_dir']=os.path.join(configuration['dir'],'data')
 configuration['log_dir']=os.path.join(configuration['dir'],'log')
+configuration['mplconfig_dir']=os.path.join(configuration['dir'],'mplconfigdir')
 configuration['data_provider_dir']=os.path.join(configuration['dir'],'data_providers')
 configuration['data_provider_names']=[]
 configuration['data_providers']={}
@@ -102,19 +103,20 @@ def add_logger(log,handlers=None):
     except:
         LOG.exception("Error configurintg log: %(module)s.%(log)s"%log)
 
-config_logging()
+def setup():
+	config_logging()
 
-# Add data providers here
-site.addsitedir(configuration['data_provider_dir'])
-for data_provider in os.listdir(configuration['data_provider_dir']):
-    dp_name=os.path.splitext(data_provider)[0]
-    try:
-        if not dp_name.startswith('_' ) and os.path.exists(os.path.join(configuration['data_provider_dir'],data_provider,'__init__.py')):
-            mod=importlib.import_module(dp_name)
-            configuration['data_providers'][dp_name]=mod.DATA_PROVIDER
-            configuration['data_provider_names'].append(dp_name)
-    except:
-        LOG.exception('Unable to load data provider "%s"',dp_name)
+	# Add data providers here
+	site.addsitedir(configuration['data_provider_dir'])
+	for data_provider in os.listdir(configuration['data_provider_dir']):
+	    dp_name=os.path.splitext(data_provider)[0]
+	    try:
+		if not dp_name.startswith('_' ) and os.path.exists(os.path.join(configuration['data_provider_dir'],data_provider,'__init__.py')):
+		    mod=importlib.import_module(dp_name)
+		    configuration['data_providers'][dp_name]=mod.DATA_PROVIDER
+		    configuration['data_provider_names'].append(dp_name)
+	    except:
+		LOG.exception('Unable to load data provider "%s"',dp_name)
 
-# setup configuration logging
-map(add_logger,LOGS)
+	# setup configuration logging
+	map(add_logger,LOGS)

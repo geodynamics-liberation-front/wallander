@@ -7,7 +7,14 @@ import posixpath
 from . import response
 
 from config import configuration
+# set the MPLCONFIGDIR
+import os
+os.environ['MPLCONFIGDIR']=configuration['mplconfig_dir']
+import config
+config.setup()
+
 # add the frame provider to the handlers
+
 
 from data_providers import HTMLDataProvider
 from viz import FrameDataProvider,ContourDataProvider

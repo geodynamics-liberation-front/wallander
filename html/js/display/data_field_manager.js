@@ -432,7 +432,7 @@ Object.defineProperty(DataField.prototype,'dimension_format',
         {
 			if( dimension_format!=this._dimension_format )
 			{
-				sprintf.parse(time_format) // Will thrown an error if not correctly formated
+				sprintf.parse(dimension_format) // Will thrown an error if not correctly formated
 				this._dimension_format=dimension_format
 				if( this.dimension_format_input.value!=dimension_format ) this.dimension_format_input.value=dimension_format 
 				this.data_field_mgr.display.updateXY()

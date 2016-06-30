@@ -4,15 +4,12 @@ __pycache__/
 *$py.class
 
 # build locations and objects
-html/img/*
 html/js/wallander_display.js
 html/js/widgets.js
 html/css/display.css
 html/css/tools.css 
 html/css/widgets.css
 
-data/*
-log/*
 html/old
 html.old
 # vim backups

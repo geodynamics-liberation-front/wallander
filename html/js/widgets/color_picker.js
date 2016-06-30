@@ -203,7 +203,7 @@ function ColorPicker(input,w,h)
 	this.alphaCanvas.ctx=this.alphaCanvas.getContext('2d')
 	this.selector_elem.appendChild(this.alphaCanvas)
 
-	this.ncd=document.createElement('div')
+	this.ncd=document.createElement('div') // The No Color Div
 	this.ncd.style.position='relative'
 	this.ncd.style.top=(2*this.outer_radius)+'px'
 	this.selector_elem.appendChild(this.ncd)
@@ -351,21 +351,21 @@ ColorPicker.prototype.mouseup = function(e)
 
 ColorPicker.prototype.mousedown = function(e)
 {
-	if( this.selector_showing && !this._nocolor)
+	if( this.selector_showing )
 	{
 		var xy=event_xy(e,this.canvas.canvas)
 		var rtheta=this.xy2rtheta(xy.x,xy.y)
-		if(this.selecting_hue=(rtheta.r<this.outer_radius && rtheta.r>this.inner_radius))
+		if(this.selecting_hue=(rtheta.r<this.outer_radius && rtheta.r>this.inner_radius) && !this._nocolor)
 		{
 			this.h=rtheta.theta
 			e.preventDefault()
 		}
-		else if(this.selecting_saturation_value=(xy.y<this.outer_radius+this.inner_radius*SIN30 && xy.y>this.line_a(xy.x) && xy.y>this.line_b(xy.x)) )
+		else if(this.selecting_saturation_value=(xy.y<this.outer_radius+this.inner_radius*SIN30 && xy.y>this.line_a(xy.x) && xy.y>this.line_b(xy.x)) && !this._nocolor)
 		{
 			this.select_saturation_value(xy)
 			e.preventDefault()
 		}
-		else if(this.selecting_alpha=(xy.x>=0 && xy.x<=2*this.outer_radius && xy.y>=2*this.outer_radius && xy.y<=2*this.outer_radius+this.alphaCanvas.height))
+		else if(this.selecting_alpha=(xy.x>=0 && xy.x<=2*this.outer_radius && xy.y>=2*this.outer_radius && xy.y<=2*this.outer_radius+this.alphaCanvas.height) && !this._ncolor)
 		{
 			this.alpha=xy.x/(2*this.outer_radius)
 			e.preventDefault()

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+HTTP_USER=www-data
+# Set the group
+chgrp -R ${HTTP_USER} *
+# Give the group and other read/execute for all directories
+find . -type d -exec chmod -v og+rx {} \;
+# Give the group and other read for all files
+find . -type f -exec chmod -v og+r {} \;
+# Give the group and other write for the working directories and files
+find _* -exec chmod -v og+w {} \;
+

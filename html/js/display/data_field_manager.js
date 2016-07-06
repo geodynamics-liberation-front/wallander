@@ -837,7 +837,7 @@ FrameOptions.prototype.deserialize = function(so)
 	this.renderer=so.renderer
 	this.opacity=so.opacity
 	this.show=so.show
-	this.allow_updates=false
+	this.allow_updates=true
 	this.updateRenderer()
 }
 

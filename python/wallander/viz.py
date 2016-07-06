@@ -63,7 +63,7 @@ class FrameDataProvider(data_providers.BaseDataProvider):
             LOG.debug("Data provider: %s",str(dp))
             frame=dp.call(path)
             renderer=get_renderer(renderer_string)
-            image_file=os.path.join(self.image_dir,image)
+            image_file=os.path.join(image_dir,image)
             renderer.write(frame,image_file)
             return open(image_file,'rb')
         else:

@@ -121,6 +121,7 @@ DataFieldManager.prototype.removeDataField = function(data_field)
 	{
 		this.data_fields[this.data_field_paths[i]].setOrder(i)
 	}
+	this.display.projector.movie.removeDataField(df)
 }
 
 DataFieldManager.prototype.updateXY = function(t,x,y)
@@ -255,6 +256,10 @@ function DataField(native_data_field,data_field_mgr)
 	this.dimension_format_input.value=this._dimension_format
 	this.dimension_format_input.addEventListener('change',function(e) { self.dimension_format=e.target.value; })
 
+	// Delete
+	this.remove_btn = new SVGButton(this.html_display.getElementsByClassName('data_field_control_delete')[0],true)
+	this.remove_btn.addEventListener('click',function(e) { self.remove() })
+
 	// Move up/down
 	this.moveup_btn = new SVGButton(this.html_display.getElementsByClassName('data_field_control_up')[0],false)
 	this.movedown_btn=new SVGButton(this.html_display.getElementsByClassName('data_field_control_down')[0],true)
@@ -267,6 +272,12 @@ function DataField(native_data_field,data_field_mgr)
 	// The frame/time sync buttons
 	this.sync_btn=new SVGRadioButtons(this.html_display.getElementsByClassName('data_field_control_sync'),this._sync)
 	this.sync_btn.addEventListener('change',function(e) { self.sync=e.value})
+}
+
+DataField.prototype.remove = function()
+{
+	this.data_field_mgr.removeDataField(this.path)
+	this.data_field_mgr.html_element.removeChild(this.html_display)
 }
 
 DataField.prototype.moveup = function()

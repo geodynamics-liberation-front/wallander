@@ -2,9 +2,9 @@ function PlayerControls(e)
 {
 	EventBroadcaster.call(this)
 	var self=this
-	this._frame
+	this._frame=0
 	this._broadcast_event=false
-	this.total_frames=0
+	this._total_frames=0
 	this._playing=false
 
 	this.playpause_elem=e
@@ -31,6 +31,20 @@ function PlayerControls(e)
 	this.progress_bar.appendChild(this.progress)
 }
 PlayerControls.prototype=new EventBroadcaster
+
+Object.defineProperty(PlayerControls.prototype,'total_frames',
+	{enumerable: true,
+     get: function() { return this._total_frames; },
+     set: function(total_frames) {
+		if( total_frames!=this._total_frames )
+		{	
+			this._total_frames=total_frames
+			var frame=this.frame
+			this._frame=0
+			this.frame=frame
+		} 
+	}
+	})
 
 Object.defineProperty(PlayerControls.prototype,'frame',
 	{enumerable: true, 

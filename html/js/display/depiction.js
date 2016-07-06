@@ -314,7 +314,7 @@ function Movie()
 	this.first=0;
 	this.listeners={};
 }
-Object.defineProperty(Movie.prototype,'z_order', {get: function() { return this.data_field_mgr.data_field_paths }})
+Object.defineProperty(Movie.prototype,'z_order',     {get: function() { return this.data_field_mgr.data_field_paths }})
 
 Object.defineProperty(Movie.prototype,'data_fields', {get: function() { return this.data_field_mgr.data_fields }})
 
@@ -346,13 +346,13 @@ Movie.prototype.addDataField = function(data_field)
 
 Movie.prototype.removeDataField = function(path)
 {
-	if( data_field_name in this.data_fields ) 
-	{ 
-		delete this.data_fields[path]
-		var ndx=this.z_order.indexOf(path)
-		this.z_order.splice(ndx,1)
-		// TODO handle this.last
+	this.last=0
+	for( var i=0; i<this.data_fields; i++ )
+	{
+		this.last=Math.max(this.last,data_fields[i].frame_count-1)
 	}
+	this.projector.player_controls.total_frames=this.last
+	this.show()
 }
 
 Movie.prototype.reset = function()
@@ -363,21 +363,22 @@ Movie.prototype.reset = function()
 	}
 	this.data_fields={}=[];
 	this.frame=0;
-	this.last=last||timesteps.length-1;
+	this.last=0
+	for( var i=0; i<this.data_fields; i++ )
+	{
+		this.last=Math.max(this.last,data_fields[i].frame_count-1)
+	}
 	this.first=first||0;
 }
 
 Movie.prototype.loaded = function(e)
 {
-	if( this.expected_frames>0 )
+	if( this.expected_frames>0 ) this.loaded_frames++
+	if( this.loaded_frames>=this.expected_frames )
 	{
-		this.loaded_frames++
-		if( this.loaded_frames>=this.expected_frames )
-		{
-			this.expected_frames=0
-			this.loaded_frames=0
-			this.broadcastEvent('load',e);
-		}
+		this.expected_frames=0
+		this.loaded_frames=0
+		this.broadcastEvent('load',e);
 	}
 }
 

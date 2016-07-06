@@ -177,7 +177,8 @@ MoveTool.prototype.mousewheel = function(display,e)
 	var p=display.xy(e);
 	e.stopPropagation();
 	e.preventDefault();
-	display.zoom(display.zoom_level*Math.pow(2,(e.wheelDelta/(2*Math.abs(e.wheelDelta)))),p.x,p.y);
+	var scale=Math.pow(2,e.deltaY/240)
+	display.zoom(display.zoom_level*scale,p.x,p.y);
 }
 
 //

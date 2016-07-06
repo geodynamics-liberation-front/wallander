@@ -84,7 +84,6 @@ DataFieldManager.prototype.addDataField = function(data_field)
 	{
 		case 'scalar':
 			df=new ScalarDataField(data_field,this)
-			this.display.projector.movie.addDataField(df)
 			break;
 		default:
 			throw new Error('Unknown data type: "'+data_field.data_type+'"')
@@ -102,6 +101,8 @@ DataFieldManager.prototype.addDataField = function(data_field)
 	{ 
 		this.setReferenceDataField(df)
 	}
+	// Finally show the data field
+	this.display.projector.movie.addDataField(df)
 	return df
 }
 

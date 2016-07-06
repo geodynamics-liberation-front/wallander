@@ -72,7 +72,8 @@ function Display(elem,depiction_elem,data_field_elem,status_elem)
 	this.canvas.addEventListener('mousemove',function(e) {self.tool.mousemove(self,e);});
 	this.canvas.addEventListener('mousemove',function(e) {self.updateXY(e);});
 	this.canvas.addEventListener('mouseout',function(e) {self.tool.mouseout(self,e);});
-	this.canvas.addEventListener('mousewheel',function(e) {self.tool.mousewheel(self,e);});
+	this.canvas.addEventListener('wheel',function(e) {self.tool.mousewheel(self,e);});
+	//this.canvas.addEventListener('mousewheel',function(e) {self.tool.mousewheel(self,e);});
 	this.canvas.addEventListener('keydown',function(e) {self.tool.keydown(self,e);});
 	this.canvas.addEventListener('keyup',function(e) {self.tool.keyup(self,e);});
 	this.resize();

@@ -5,6 +5,7 @@ from wallander import ICONS
 import wallander.viz as viz
 from matplotlib.pylab import register_cmap
 from matplotlib.colors import LinearSegmentedColormap 
+from . import colormaps
 
 LOG=logging.getLogger(__name__)
 

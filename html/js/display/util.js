@@ -63,8 +63,6 @@ function get_img_url(img)
  * The bitwise operators of Javascript turn the operands into 32 but integers
  * This turns out to be faster than Math.floor, see: 
  * http://blog.blakesimpson.co.uk/read/58-fastest-alternative-to-math-floor-in-javascript
- * The performance of the various operators across browsers is mixed.  I choose the 
- * Btiwise not (~ twice) as it looks the nicest. 
  */
 function bsearch(v,a)
 {

@@ -2,11 +2,13 @@
 
 HTTP_USER=www-data
 # Set the group
-chgrp -R ${HTTP_USER} *
+find . -not -group ${HTTP_USER} -exec chgrp -v ${HTTP_USER} {} \;
 # Give the group and other read/execute for all directories
-find . -type d -exec chmod -v og+rx {} \;
+find . -type d -not -wholename './_*' -not -perm 755 -exec chmod -v 755 {} \;
+find . -type d -wholename './_*' -not -perm 775 -exec chmod -v 775 {} \;
 # Give the group and other read for all files
-find . -type f -exec chmod -v og+r {} \;
-# Give the group and other write for the working directories and files
-find _* -exec chmod -v og+w {} \;
+find . -type f -not -wholename './_*' -not -perm 644 -exec chmod -v 644 {} \;
+find . -type f -wholename './_*' -not -perm 664 -exec chmod -v 664 {} \;
+# fix ourself
+chmod +x $0
 

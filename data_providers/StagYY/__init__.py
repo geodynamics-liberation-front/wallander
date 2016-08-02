@@ -88,6 +88,7 @@ def create_colormaps():
     LOG.debug('Creating lithosphere colormaps')
     litho_colormap(0,1650,1550,10)
     viz.alpha_colormap('AlphaGreen',0.0,1.0,0.0)
+    colormaps.create_colormaps()
 
 STAGYY_DISPLAY_NAMES={
     'age': 'Age',

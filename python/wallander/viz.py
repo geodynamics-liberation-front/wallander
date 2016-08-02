@@ -141,6 +141,7 @@ class RendererThread(Thread):
         self.callback=callback
         # Thread state
         self.running=False
+
     def to_json(self):
         return {'total_frames':self.frames,'current_frame':self.frame,'renderer':self.renderer,'alive':self.isAlive()}
        
@@ -151,8 +152,11 @@ class RendererThread(Thread):
             if not self.running: break
             fname=self.filename%self.frame
             if not os.path.exists(fname):
-                data_frame=self.dp.call(self.path+[str(self.frame)])
-                self.renderer.write(data_frame,fname)
+                try:
+                    data_frame=self.dp.call(self.path+[str(self.frame)])
+                    self.renderer.write(data_frame,fname)
+                except:
+                    LOG.exception('Exception processing %s',repr(self.path+[str(self.frame)]))
             if self.callback!=None:
                 self.callback(self.frame,fname)
 
@@ -290,7 +294,7 @@ class ContourDataProvider(data_providers.BaseDataProvider):
             dp=configuration['data_providers'].get(data_provider)
             LOG.debug("Data provider: %s",str(dp))
             frame=dp.call(path)
-            image_file=os.path.join(self.image_dir,image)
+            image_file=os.path.join(image_dir,image)
             contour.write_contour(frame,contours,image_file)
             return open(image_file,'rb')
         else:
